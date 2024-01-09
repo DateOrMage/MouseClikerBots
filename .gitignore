@@ -1,0 +1,5 @@
+# /config.json
+/venv
+# /dist/
+*.pyc
+.DS_Store
