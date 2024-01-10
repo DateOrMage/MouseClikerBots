@@ -56,9 +56,7 @@ class ClassificationBots:
     def data_analyze(self, df: DataFrame) -> DataFrame:
         df['Bot'] = np.zeros(len(df), dtype='int8')
         df['Session time'] = np.nan
-        df['Average speed'] = np.nan
         df['Max speed'] = np.nan
-        df['Average acceleration'] = np.nan
         df['Max acceleration'] = np.nan
         df['Min acceleration'] = np.nan
 
@@ -95,9 +93,7 @@ class ClassificationBots:
             speed_list = self.get_speed_list(x_coords, y_coords, unix_time)
             acceleration_list = self.get_acceleration_list(speed_list, unix_time)
 
-            df.loc[index, 'Average speed'] = np.mean(speed_list)
             df.loc[index, 'Max speed'] = np.max(speed_list)
-            df.loc[index, 'Average acceleration'] = np.mean(acceleration_list)
             df.loc[index, 'Max acceleration'] = np.max(acceleration_list)
             df.loc[index, 'Min acceleration'] = np.min(acceleration_list)
 
