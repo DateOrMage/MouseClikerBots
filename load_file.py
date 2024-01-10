@@ -57,3 +57,4 @@ if __name__ == '__main__':
     data = cb.execute(data)
     stop = time.time()
     print(f'Data analyze time is {round(stop-start)} sec.')
+    data.to_excel("C:\\Users\\Пользователь\\Downloads\\pp_unix_mini.xlsx")
