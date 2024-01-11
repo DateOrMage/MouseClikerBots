@@ -29,6 +29,7 @@ class STableWidet(QWidget):
 
     def _initialize_ui(self, filter_only_if_return_pressed):
         external_layout = QVBoxLayout()
+        external_layout.setAlignment(Qt.AlignCenter)
 
         self.filter_line_edits = []
         filter_layout = QHBoxLayout()
