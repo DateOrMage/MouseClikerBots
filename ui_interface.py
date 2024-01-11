@@ -23,9 +23,13 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QHeaderView, QLabel,
 
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTabWidget
+import matplotlib
+
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from custom_table import STableWidet
+matplotlib.use('qtagg')
+plt.ioff()
 
 
 class MatplotlibWidget(QWidget):
@@ -101,7 +105,7 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.tab_load, "")
 
         # tab initial table
-        df = pd.read_excel("Координаты движения мыши Unix mini.xlsx")
+        df = pd.read_excel("C:\\Users\\Пользователь\\Downloads\\Координаты движения мыши Unix mini.xlsx")
 
         self.tab_table_init = QWidget()
         self.verticalLayout_tab_init = QVBoxLayout()
