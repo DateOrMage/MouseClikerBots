@@ -1,4 +1,5 @@
 from pandas import read_excel, DataFrame
+import gc
 
 
 class LoadFile:
@@ -14,7 +15,7 @@ class LoadFile:
 
     def check_columns(self, df: DataFrame) -> DataFrame:
         try:
-            df = df[['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат',
+            df = df[['ID', 'ACCOUNT_ID', 'Кол-во координат',
                      'Координаты с отпечатком времени в unix формате (кол-во миллисекунд с 01.01.1970)']]
             df = df.rename(columns={'Координаты с отпечатком времени в unix формате (кол-во миллисекунд с 01.01.1970)':
                                     'x_y_unix'})
@@ -42,6 +43,7 @@ class LoadFile:
     def execute(self):
         df = self.load_excel()
         df = self.check_up(df)
+        gc.collect()
 
         return df, self.output_text, self.flag
 
@@ -57,4 +59,8 @@ if __name__ == '__main__':
     data = cb.execute(data)
     stop = time.time()
     print(f'Data analyze time is {round(stop-start)} sec.')
-    data.to_excel("C:\\Users\\Пользователь\\Downloads\\pp_unix_mini.xlsx")
+    # data.to_excel("C:\\Users\\Пользователь\\Downloads\\pp_unix_mini.xlsx")
+    from clusterization import Clusterization
+    data = Clusterization().get_cluster_by_session(data)
+    print(data)
+    stat_data = Clusterization().get_cluster_by_user(data)
