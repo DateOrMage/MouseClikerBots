@@ -96,7 +96,7 @@ class Ui_MainWindow(object):
 
         self.progress_analyze = QProgressBar(self.tab_load)
         self.progress_analyze.setObjectName(u"progress_analyze")
-        self.progress_analyze.setValue(0)
+        # self.progress_analyze.setValue(0)
         self.progress_analyze.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout.addWidget(self.progress_analyze)
