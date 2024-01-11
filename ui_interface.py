@@ -139,6 +139,12 @@ class Ui_MainWindow(object):
         self.but_plot_trajectories.setVisible(False)
         self.verticalLayout_tab_init.addWidget(self.but_plot_trajectories)
 
+        self.but_save_tab_init = QPushButton()
+        self.but_save_tab_init.setObjectName(u"but_plot_trajectories")
+        self.but_save_tab_init.setText("Сохранить таблицу с ботами")
+        self.but_save_tab_init.setVisible(False)
+        self.verticalLayout_tab_init.addWidget(self.but_save_tab_init)
+
         #  plot track session
         self.tab_plot_trajectories = create_tab_with_figure()
         self.tabWidget.addTab(self.tab_plot_trajectories, "График траекторий")
@@ -177,6 +183,12 @@ class Ui_MainWindow(object):
         self.horizontalLayout_tab_users.addWidget(self.but_filtred_users)
 
         self.verticalLayout_tab_users.addLayout(self.horizontalLayout_tab_users)
+
+        self.but_save_tab_users = QPushButton()
+        self.but_save_tab_users.setObjectName(u"but_plot_trajectories")
+        self.but_save_tab_users.setText("Сохранить таблицу с кластеризацией")
+        self.but_save_tab_users.setVisible(False)
+        self.verticalLayout_tab_users.addWidget(self.but_save_tab_users)
 
         # plot clusterization
         self.tab_plot_clusters = create_tab_with_figure()
