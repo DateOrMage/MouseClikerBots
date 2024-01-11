@@ -43,7 +43,7 @@ class Clusterization:
         scaler = StandardScaler()
         df = scaler.fit_transform(df)
         print('DF after scaler\n', df)
-        kmeans = KMeans(n_clusters=self.__n_clusters, random_state=self.__random_seed, n_init='auto')
+        kmeans = KMeans(n_clusters=self.__n_clusters, random_state=self.__random_seed, n_init=10)
         cluster_labels = kmeans.fit_predict(df)
         del df
         original_data['Session_cluster'] = cluster_labels
