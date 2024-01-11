@@ -67,45 +67,47 @@ class Ui_MainWindow(object):
         # tab load
         self.tab_load = QWidget()
         self.tab_load.setObjectName(u"tab_load")
-        self.widget = QWidget(self.tab_load)
-        self.widget.setObjectName(u"widget")
-        self.widget.setGeometry(QRect(100, 70, 771, 391))
-        self.verticalLayout = QVBoxLayout(self.widget)
+        #self.widget = QWidget(self.tab_load)
+        #self.widget.setObjectName(u"widget")
+        #self.widget.setGeometry(QRect(100, 70, 771, 391))
+        self.tab_load.setGeometry(QRect(100, 70, 771, 391))
+        self.verticalLayout = QVBoxLayout(self.tab_load)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.but_load_excel = QPushButton(self.widget)
+        self.verticalLayout.setContentsMargins(20, 20, 20, 20)
+        self.but_load_excel = QPushButton(self.tab_load)
         self.but_load_excel.setObjectName(u"but_load_excel")
 
         self.verticalLayout.addWidget(self.but_load_excel)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.but_analyze = QPushButton(self.widget)
+        self.but_analyze = QPushButton(self.tab_load)
         self.but_analyze.setObjectName(u"but_analyze")
 
         self.horizontalLayout.addWidget(self.but_analyze)
 
-        self.but_clusterize = QPushButton(self.widget)
+        self.but_clusterize = QPushButton(self.tab_load)
         self.but_clusterize.setObjectName(u"but_clusterize")
 
         self.horizontalLayout.addWidget(self.but_clusterize)
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
-        self.progress_analyze = QProgressBar(self.widget)
+        self.progress_analyze = QProgressBar(self.tab_load)
         self.progress_analyze.setObjectName(u"progress_analyze")
         self.progress_analyze.setValue(0)
 
         self.verticalLayout.addWidget(self.progress_analyze)
 
-        self.label_load = QLabel(self.widget)
+        self.label_load = QLabel(self.tab_load)
         self.label_load.setObjectName(u"label_load")
 
         self.verticalLayout.addWidget(self.label_load)
         self.tabWidget.addTab(self.tab_load, "")
 
         # tab initial table
-        df = pd.read_excel("C:\\Users\\Пользователь\\Downloads\\Координаты движения мыши Unix mini.xlsx")
+        # C:\\Users\\Пользователь\\Downloads\\
+        df = pd.read_excel("Координаты движения мыши Unix mini.xlsx")
 
         self.tab_table_init = QWidget()
         self.verticalLayout_tab_init = QVBoxLayout()
