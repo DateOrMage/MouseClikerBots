@@ -1,13 +1,4 @@
-# -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
-import pandas as pd
-################################################################################
-## Form generated from reading UI file 'ui_newkScbqx.ui'
-##
-## Created by: Qt User Interface Compiler version 6.6.1
-##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
-################################################################################
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
@@ -21,7 +12,6 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QHeaderView, QLabel,
     QSizePolicy, QStatusBar, QTabWidget, QTableWidget,
     QTableWidgetItem, QVBoxLayout, QWidget)
 
-import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTabWidget
 import matplotlib
 
@@ -36,10 +26,22 @@ class MatplotlibWidget(QWidget):
     def __init__(self, parent=None, figure=None):
         super(MatplotlibWidget, self).__init__(parent)
 
-        self.canvas = FigureCanvas(figure)
+        # self.figure = Figure() if figure is None else figure
+        self.canvas = PlotCanvas()
         layout = QVBoxLayout()
         layout.addWidget(self.canvas)
         self.setLayout(layout)
+
+    def reset_widget(self):
+        self.canvas.axes.clear()
+
+
+
+class PlotCanvas(FigureCanvas):
+    def __init__(self):
+        fig = Figure()
+        self.axes = fig.add_subplot(111)
+        super(PlotCanvas, self).__init__(fig)
 
 
 def create_tab_with_figure(figure=None):
@@ -144,8 +146,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_tab_init.addWidget(self.but_save_tab_init)
 
         #  plot track session
-        self.tab_plot_trajectories = create_tab_with_figure()
+        self.tab_plot_trajectories = QWidget()
+        self.verticalLayout_tab_plot_traj = QVBoxLayout()
+        self.tab_plot_trajectories.setLayout(self.verticalLayout_tab_plot_traj)
         self.tabWidget.addTab(self.tab_plot_trajectories, "График траекторий")
+        self.matplotlib_traj_widget = MatplotlibWidget(figure=None)
+        self.verticalLayout_tab_plot_traj.addWidget(self.matplotlib_traj_widget)
 
         # tab Table users
         self.tab_table_user = QWidget()
@@ -188,8 +194,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_tab_users.addWidget(self.but_save_tab_users)
 
         # plot clusterization
-        self.tab_plot_clusters = create_tab_with_figure()
-        self.tabWidget.addTab(self.tab_plot_clusters, "График кластеризации")
+        self.tab_plot_tsne = QWidget()
+        self.verticalLayout_tab_plot_tsne = QVBoxLayout()
+        self.tab_plot_tsne.setLayout(self.verticalLayout_tab_plot_tsne)
+        self.tabWidget.addTab(self.tab_plot_tsne, "График кластеризации")
+        self.matplotlib_tsne_widget = MatplotlibWidget(figure=None)
+        self.verticalLayout_tab_plot_tsne.addWidget(self.matplotlib_tsne_widget)
 
         # tab table sessions
         self.tab_table_session = QWidget()
@@ -206,25 +216,6 @@ class Ui_MainWindow(object):
                                                 filter_only_if_return_pressed=False)
         self.verticalLayout_tab_sessions.addWidget(self.tableWidget_sessions)
         self.tabWidget.addTab(self.tab_table_session, "Таблица по сессиям")
-
-        # tab trajectories plot
-        # data1 = ([1, 2, 3, 4, 5], [2, 4, 6, 8, 10])
-        # figure_traj, ax_traj = plt.subplots()
-        # ax_traj.plot(*data1)
-        # #ax_traj.legend()
-        # ax_traj.set_xlabel('X Coordinate')
-        # ax_traj.set_ylabel('Y Coordinate')
-        # ax_traj.axes.set_title(f'Bot Trajectory')
-
-
-        # tab clusters plot
-        # figure_cluster, ax_cluster = plt.subplots()
-        # ax_cluster.scatter(*data1)
-        # #ax_cluster.legend()
-        # ax_cluster.set_title("t-SNE Visualization with Clusters")
-        # ax_cluster.set_xlabel("t-SNE Dimension 1")
-        # ax_cluster.set_ylabel("t-SNE Dimension 2")
-
 
         self.verticalLayout_central.addWidget(self.tabWidget)
 

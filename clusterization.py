@@ -9,7 +9,7 @@ class Clusterization:
     __n_clusters: int = 3
     __random_seed: int = 42
 
-    def get_cluster_by_user(self, df: DataFrame) -> DataFrame:
+    def get_cluster_by_user(self, df: DataFrame) -> tuple:
         clustering_df = df.groupby('ACCOUNT_ID').agg(
             Number_of_Sessions=NamedAgg(column='ID', aggfunc='count'),
             Average_Max_Speed=NamedAgg(column='Max speed', aggfunc='mean'),
@@ -31,7 +31,7 @@ class Clusterization:
         cluster_labels = kmeans.fit_predict(scaled_data)
         clustering_df['User_cluster'] = cluster_labels
 
-        return clustering_df
+        return clustering_df, scaled_data
 
     def get_cluster_by_session(self, df: DataFrame) -> DataFrame:
         original_data = df.copy()
@@ -50,6 +50,11 @@ class Clusterization:
         gc.collect()
 
         return original_data
+
+    def execute(self, df: DataFrame) -> tuple:
+        original_data = self.get_cluster_by_session(df)
+        clustering_df, scaled_data = self.get_cluster_by_user(df)
+        return original_data, clustering_df, scaled_data
 
 
 

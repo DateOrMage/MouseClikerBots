@@ -4,13 +4,16 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 from PySide6.QtSql import QSqlTableModel
 from PySide6.QtCore import Signal, Slot, QRunnable, QThreadPool, QObject, QByteArray, QThread
 
-from ui_interface import Ui_MainWindow
+from ui_interface import Ui_MainWindow, MatplotlibWidget
 
 from pandas import DataFrame
+from numpy import ndarray
+from sklearn.manifold import TSNE
 
 from load_file import LoadFile
 from classification_bots import ClassificationBots
-# from s_table_widet import STableWidet
+from support_plot import get_x_y_cooor_and_label
+from clusterization import Clusterization
 
 
 class WorkerSignals(QObject):
@@ -47,8 +50,13 @@ class MouseClicker(QMainWindow):
 
         self.ui.but_load_excel.clicked.connect(self.start_thread_load_excel)
         self.ui.but_analyze.clicked.connect(self.start_thread_analyze_data)
+        self.ui.but_plot_trajectories.clicked.connect(self.start_thread_plot_track)
+        self.ui.but_clusterize.clicked.connect(self.start_thread_clusterize)
+        self.ui.but_plot_tsne.clicked.connect(self.start_thread_plot_tsne)
 
         self.data: DataFrame | None = None
+        self.data_users: DataFrame | None = None
+        self.tsne_data: ndarray | None = None
 
     def result_load(self, res):
         self.data = res[0]  # data
@@ -65,14 +73,11 @@ class MouseClicker(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(self, "Открыть файл эксель", "",
                                                    "Excel Files (*.xlsx);;All Files (*)")
         if file_path:
-            # PROGRESS BAR
-            self.ui.label_load.setText("Подождите, идет загрузка")
+            self.ui.label_load.setText("Подождите, идет загрузка...")
             self.ui.progress_analyze.setMaximum(0)
             self.ui.progress_analyze.setValue(-1)
 
             lf = LoadFile(file_path)
-            # self.data, text_print, flag_load = lf.execute()
-
             thread_load = Worker(lf.execute)
             thread_load.signals.result.connect(self.result_load)
             thread_load.signals.finished.connect(self.finished_load)
@@ -82,7 +87,7 @@ class MouseClicker(QMainWindow):
     def result_analyze(self, res):
         self.data = res
         self.ui.label_load.setText("Данные успешно проанализированы, можно строить графики траекторий или"
-                                   " кластеризовать данные")
+                                   " кластеризовать данные.")
         self.ui.but_analyze.setEnabled(False)
         self.ui.but_clusterize.setEnabled(True)
         self.ui.label_table_init.setVisible(True)
@@ -90,18 +95,15 @@ class MouseClicker(QMainWindow):
         self.ui.but_save_tab_init.setVisible(True)
 
         self.ui.tableWidget_init.set_dataframe(self.data.reset_index())
-        # tableWidget_init = STableWidet(self.data, checkbox_list=['ID'], filter_only_if_return_pressed=True)
-        # self.ui.verticalLayout_tab_init.addWidget(tableWidget_init)
 
         self.ui.tabWidget.setCurrentIndex(1)
 
     def finished_analyze(self):
         self.ui.progress_analyze.setMaximum(1)
         self.ui.progress_analyze.setValue(1)
-        # print(self.data)
 
     def start_thread_analyze_data(self):
-        self.ui.label_load.setText("Подождите, анализируются данные")
+        self.ui.label_load.setText("Подождите, анализируются данные...")
         self.ui.progress_analyze.setMaximum(0)
         self.ui.progress_analyze.setValue(-1)
 
@@ -111,6 +113,98 @@ class MouseClicker(QMainWindow):
         thread_analyze.signals.finished.connect(self.finished_analyze)
 
         self.threadpool.start(thread_analyze)
+
+    # plot trajectories
+    def plot_track(self):
+        self.ui.matplotlib_traj_widget.reset_widget()
+        self.selected_indices_track = self.ui.tableWidget_init.get_values_of_selected_items()
+        self.ui.matplotlib_traj_widget.canvas.axes.set_xlabel('X Coordinate')
+        self.ui.matplotlib_traj_widget.canvas.axes.set_ylabel('Y Coordinate')
+        self.ui.matplotlib_traj_widget.canvas.axes.set_title(f'Bot Trajectory')
+        for value in self.selected_indices_track:
+            x_coords, y_coords, label = get_x_y_cooor_and_label(self.data, self.ui.tableWidget_init.checkbox_list[0],
+                                                                value)
+            self.ui.matplotlib_traj_widget.canvas.axes.plot(x_coords, y_coords, marker='o', linestyle='-', label=label)
+        self.ui.matplotlib_traj_widget.canvas.axes.legend()
+
+    def result_plot_track(self):
+        self.ui.matplotlib_traj_widget.canvas.draw()
+        self.ui.tabWidget.setCurrentIndex(2)
+
+    def finished_plot_track(self):
+        pass
+
+    def start_thread_plot_track(self):
+        thread_plot_track = Worker(self.plot_track)
+        thread_plot_track.signals.result.connect(self.result_plot_track)
+        thread_plot_track.signals.finished.connect(self.finished_plot_track)
+
+        self.threadpool.start(thread_plot_track)
+
+    def result_clusterize(self, res):
+        self.data = res[0]
+        self.data_users = res[1]
+        self.tsne_data = res[2]
+        self.ui.label_load.setText("Кластеризация прошла успешно, можно строить графики траекторий, кластеризации или"
+                                   " рассмотреть сессии пользователя.")
+        self.ui.but_clusterize.setEnabled(False)
+        self.ui.label_user.setVisible(True)
+        self.ui.but_plot_tsne.setVisible(True)
+        self.ui.but_filtred_users.setVisible(True)
+        self.ui.but_save_tab_users.setVisible(True)
+
+        self.ui.tableWidget_users.set_dataframe(self.data_users.reset_index())
+
+        self.ui.tabWidget.setCurrentIndex(3)
+
+    def finished_clusterize(self):
+        self.ui.progress_analyze.setMaximum(1)
+        self.ui.progress_analyze.setValue(1)
+
+    def start_thread_clusterize(self):
+        self.ui.label_load.setText("Подождите, идет кластеризация данных...")
+        self.ui.progress_analyze.setMaximum(0)
+        self.ui.progress_analyze.setValue(-1)
+
+        cluster = Clusterization()
+        thread_cluster = Worker(cluster.execute, self.data)
+        thread_cluster.signals.result.connect(self.result_clusterize)
+        thread_cluster.signals.finished.connect(self.finished_clusterize)
+
+        self.threadpool.start(thread_cluster)
+
+    def plot_tsne(self):
+        self.ui.matplotlib_tsne_widget.reset_widget()
+        # self.selected_indices_track = self.ui.tableWidget_init.get_values_of_selected_items()
+        self.ui.matplotlib_tsne_widget.canvas.axes.set_xlabel('t-SNE Dimension 1')
+        self.ui.matplotlib_tsne_widget.canvas.axes.set_ylabel('t-SNE Dimension 2')
+        self.ui.matplotlib_tsne_widget.canvas.axes.set_title(f't-SNE Visualization with Clusters')
+
+        tsne = TSNE(n_components=2, random_state=42)
+        tsne_data = tsne.fit_transform(self.tsne_data)
+
+        for i in range(3):
+            self.ui.matplotlib_tsne_widget.canvas.axes.scatter(tsne_data[self.data_users['User_cluster'] == i, 0],
+                                                               tsne_data[self.data_users['User_cluster'] == i, 1],
+                                                               label={0: "Не бот (0)", 1: "Бот (1)",
+                                                                      2: "Не определено (2)"}[i],
+                                                               s=5
+                                                               )
+        self.ui.matplotlib_tsne_widget.canvas.axes.legend()
+
+    def result_plot_tsne(self):
+        self.ui.matplotlib_tsne_widget.canvas.draw()
+        self.ui.tabWidget.setCurrentIndex(4)
+
+    def finished_plot_tsne(self):
+        pass
+
+    def start_thread_plot_tsne(self):
+        thread_plot_tsne = Worker(self.plot_tsne)
+        thread_plot_tsne.signals.result.connect(self.result_plot_tsne)
+        thread_plot_tsne.signals.finished.connect(self.finished_plot_tsne)
+
+        self.threadpool.start(thread_plot_tsne)
 
 
 if __name__ == "__main__":

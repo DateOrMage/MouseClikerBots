@@ -237,7 +237,7 @@ class STableWidet(QWidget):
 
     def get_values_of_selected_items(self):
         # функция для возвращения чекбокснутых значений
-        return self.df.loc[self.get_index_of_selected_items(), self.checkbox_list]
+        return self.df.loc[self.get_index_of_selected_items(), self.checkbox_list[0]].values
 
 
 if __name__ == "__main__":
