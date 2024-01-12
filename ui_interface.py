@@ -27,7 +27,7 @@ import matplotlib
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from custom_table import STableWidet
+from s_table_widet import STableWidet
 matplotlib.use('qtagg')
 plt.ioff()
 
@@ -55,7 +55,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1041, 663)
+        MainWindow.resize(1200, 675)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
 
@@ -127,11 +127,9 @@ class Ui_MainWindow(object):
 
         self.tab_table_init.setLayout(self.verticalLayout_tab_init)
 
-        # tableWidget_init = STableWidet(df,
-        #                                checkbox_list=['ID'],
-        #                                rows_per_page=1000,
-        #                                filter_only_if_return_pressed=True)
-        # self.verticalLayout_tab_init.addWidget(tableWidget_init)
+        self.tableWidget_init = STableWidet(checkbox_list=['ID'], rows_per_page=1000,
+                                            filter_only_if_return_pressed=True)
+        self.verticalLayout_tab_init.addWidget(self.tableWidget_init)
         self.tabWidget.addTab(self.tab_table_init, "Таблица с ботами")
 
         self.but_plot_trajectories = QPushButton()
@@ -161,11 +159,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_tab_users.addWidget(self.label_user)
 
         self.tab_table_user.setLayout(self.verticalLayout_tab_users)
-        # tableWidget_users = STableWidet(df,
-        #                                 checkbox_list=['ID'],
-        #                                 rows_per_page=1000,
-        #                                 filter_only_if_return_pressed=True)
-        # self.verticalLayout_tab_users.addWidget(tableWidget_users)
+
+        self.tableWidget_users = STableWidet(checkbox_list=['ACCOUNT_ID'], rows_per_page=500,
+                                             filter_only_if_return_pressed=False)
+        self.verticalLayout_tab_users.addWidget(self.tableWidget_users)
         self.tabWidget.addTab(self.tab_table_user, "Таблица по пользователям")
 
         self.horizontalLayout_tab_users = QHBoxLayout()
@@ -204,11 +201,10 @@ class Ui_MainWindow(object):
         self.label_sessions.setGeometry(QRect(30, 20, 351, 17))
         self.verticalLayout_tab_sessions.addWidget(self.label_sessions)
         self.tab_table_session.setLayout(self.verticalLayout_tab_sessions)
-        # tableWidget_sessions = STableWidet(df,
-        #                                    checkbox_list=['ID'],
-        #                                    rows_per_page=1000,
-        #                                    filter_only_if_return_pressed=True)
-        # self.verticalLayout_tab_sessions.addWidget(tableWidget_sessions)
+
+        self.tableWidget_sessions = STableWidet(checkbox_list=None, rows_per_page=500,
+                                                filter_only_if_return_pressed=False)
+        self.verticalLayout_tab_sessions.addWidget(self.tableWidget_sessions)
         self.tabWidget.addTab(self.tab_table_session, "Таблица по сессиям")
 
         # tab trajectories plot

@@ -1,6 +1,8 @@
+import sys
+import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QHBoxLayout, \
-    QLineEdit, QPushButton, QLabel, QTabWidget
+    QLineEdit, QPushButton, QLabel, QTabWidget, QFileDialog
 
 
 class STableWidet(QWidget):
@@ -11,72 +13,50 @@ class STableWidet(QWidget):
     filter_only_if_return_pressed - фильтровать только по нажатии enter
     """
     def __init__(self,
-                 dataframe,
+                 dataframe=None,
                  checkbox_list=None,
                  rows_per_page=1000,
                  filter_only_if_return_pressed=False):
         super().__init__()
+
         if checkbox_list is None:
             checkbox_list = []
+
+        if dataframe is None:
+            dataframe = pd.DataFrame()
+
         self.df = dataframe
         self.filtering = False
         self.current_page = 0
         self.default_rows_per_page = rows_per_page
         self.rows_per_page = self.default_rows_per_page
         self.checkbox_list = checkbox_list
+        self.filter_only_if_pressed = filter_only_if_return_pressed
 
-        self._initialize_ui(filter_only_if_return_pressed)
+        self._initialize_ui()
 
-    def _initialize_ui(self, filter_only_if_return_pressed):
+
+
+    def _initialize_ui(self):
         external_layout = QVBoxLayout()
-        external_layout.setAlignment(Qt.AlignCenter)
 
+        # Лэйаут для полей фильтрации
         self.filter_line_edits = []
-        filter_layout = QHBoxLayout()
-        filter_layout.setSpacing(0)
-        for column in self.df.columns:
-            line_edit = QLineEdit()
-            line_edit.setPlaceholderText(f"Фильтр {column}")
-            if filter_only_if_return_pressed:
-                line_edit.returnPressed.connect(self._filter_table)
-                line_edit.textChanged.connect(self._stop_filter_table)
-            else:
-                line_edit.textChanged.connect(self._filter_table)
+        self.filter_layout = QHBoxLayout()
+        self.filter_layout.setSpacing(0)
 
-            line_edit.setFixedWidth(100)
-            self.filter_line_edits.append(line_edit)
-            filter_layout.addWidget(line_edit)
+        self._set_filter_edits()
 
-        filter_layout.addStretch(1)
+        external_layout.addLayout(self.filter_layout)
 
-        external_layout.addLayout(filter_layout)
-
+        # Виджет для таблицы
         self.table_widget = QTableWidget()
+
+        self._set_table()
+
         external_layout.addWidget(self.table_widget)
 
-        self.table_widget.setColumnCount(len(self.df.columns))
-        self.table_widget.setRowCount(len(self.df))
 
-        self.table_widget.setHorizontalHeaderLabels(self.df.columns)
-
-        for i in range(self.table_widget.rowCount()):
-            for j in range(self.table_widget.columnCount()):
-                item = QTableWidgetItem(str(self.df.iloc[i, j]))
-
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-
-                if self.df.columns[j] in self.checkbox_list:
-                    item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-                    item.setCheckState(Qt.Unchecked)
-
-                self.table_widget.setItem(i, j, item)
-
-        self.table_widget.horizontalHeader().sectionResized.connect(self._on_column_resized)
-        self.table_widget.setSortingEnabled(True)
-
-        self.table_widget.verticalHeader().setVisible(True)
-        self.table_widget.verticalHeader().setFixedWidth(self.table_widget.verticalHeader().width())
-        self._add_padding_to_filters(self.table_widget.verticalHeader().width(), filter_layout)
 
         page_num_layout = QHBoxLayout()
         self.page_num_prev = QPushButton("Предыдущая страница")
@@ -94,11 +74,28 @@ class STableWidet(QWidget):
 
         external_layout.addLayout(page_num_layout)
 
+        # #закоментить
+        # loadPushButton = QPushButton("загрузить")
+        # loadPushButton.clicked.connect(self.load_df)
+        # external_layout.addWidget(loadPushButton)
+        # #закоментить
+
         self._update_table()
 
         self.setWindowTitle("Статистическая таблица)")
 
         self.setLayout(external_layout)
+
+    #закоментить
+    # def load_df(self):
+    #     options = QFileDialog.Options()
+    #     filePath, _ = QFileDialog.getOpenFileName(self, "Выберите файл Excel", "", "Excel Files (*.xlsx)", options=options)
+    #
+    #     if filePath:
+    #         df = pd.read_excel(filePath)
+    #
+    #     self.set_dataframe(df)
+    #закоменить
 
     @staticmethod
     def _add_padding_to_filters(width, filter_layout):
@@ -171,6 +168,63 @@ class STableWidet(QWidget):
         self.rows_per_page = length
         self._update_page_num_line(filtering=True)
 
+    def _set_filter_edits(self):
+        for column in self.df.columns:
+            line_edit = QLineEdit()
+            line_edit.setPlaceholderText(f"Фильтр {column}")
+            if self.filter_only_if_pressed:
+                line_edit.returnPressed.connect(self._filter_table)
+                line_edit.textChanged.connect(self._stop_filter_table)
+            else:
+                line_edit.textChanged.connect(self._filter_table)
+
+            line_edit.setFixedWidth(100)
+            self.filter_line_edits.append(line_edit)
+            self.filter_layout.addWidget(line_edit)
+
+        self.filter_layout.addStretch(1)
+
+    def _set_table(self):
+        self.table_widget.setColumnCount(len(self.df.columns))
+        self.table_widget.setRowCount(len(self.df))
+
+        self.table_widget.setHorizontalHeaderLabels(self.df.columns)
+
+        for i in range(self.table_widget.rowCount()):
+            for j in range(self.table_widget.columnCount()):
+
+                if pd.api.types.is_numeric_dtype(self.df[self.df.columns[j]]):
+                    # print(self.df[self.df.columns[j]].dtype)
+                    item = QTableWidgetItem()
+                    #item.setData(Qt.DisplayRole, int(self.df.iloc[i, j]))
+                    item.setData(Qt.EditRole, int(self.df.iloc[i, j]))
+                else:
+                    item = QTableWidgetItem(str(self.df.iloc[i, j]))
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+
+                if self.df.columns[j] in self.checkbox_list:
+                    item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                    item.setCheckState(Qt.Unchecked)
+
+                self.table_widget.setItem(i, j, item)
+
+        self.table_widget.horizontalHeader().sectionResized.connect(self._on_column_resized)
+        self.table_widget.setSortingEnabled(True)
+
+        self.table_widget.verticalHeader().setVisible(True)
+        self.table_widget.verticalHeader().setFixedWidth(self.table_widget.verticalHeader().width())
+        self._add_padding_to_filters(self.table_widget.verticalHeader().width(), self.filter_layout)
+
+    def set_dataframe(self, dataframe):
+        self.df = dataframe
+
+        self._set_filter_edits()
+
+        self._set_table()
+
+        self._update_table()
+
+
     def get_index_of_selected_items(self):
         # функция для возвращения индексов чекбокснутых записей
         selected_indices = []
@@ -184,3 +238,28 @@ class STableWidet(QWidget):
     def get_values_of_selected_items(self):
         # функция для возвращения чекбокснутых значений
         return self.df.loc[self.get_index_of_selected_items(), self.checkbox_list]
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+
+    tab = QTabWidget()
+    tab.resize(950, 500)
+    df = pd.read_excel('Координаты движения мыши Unix mini.xlsx', index_col=None)
+    # df = pd.read_excel('200тыс_записей_20231115_Выгрузка_координат_с_временем_для_анализа.xlsx')
+    df_users = df.groupby('ACCOUNT_ID').sum().reset_index()
+    tab.addTab(
+        STableWidet(),
+        "таблица сессии"
+    )
+
+    tab.addTab(
+        STableWidet(df_users,
+                    checkbox_list=['ACCOUNT_ID'],
+                    rows_per_page=500,
+                    filter_only_if_return_pressed=False),
+        "таблица пользователи"
+    )
+
+    tab.show()
+    sys.exit(app.exec())

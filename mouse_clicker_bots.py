@@ -10,7 +10,7 @@ from pandas import DataFrame
 
 from load_file import LoadFile
 from classification_bots import ClassificationBots
-from custom_table import STableWidet
+# from s_table_widet import STableWidet
 
 
 class WorkerSignals(QObject):
@@ -59,7 +59,6 @@ class MouseClicker(QMainWindow):
     def finished_load(self):
         self.ui.progress_analyze.setMaximum(1)
         self.ui.progress_analyze.setValue(1)
-        print(self.data)
 
     def start_thread_load_excel(self):
         self.ui.but_analyze.setEnabled(False)
@@ -90,15 +89,16 @@ class MouseClicker(QMainWindow):
         self.ui.but_plot_trajectories.setVisible(True)
         self.ui.but_save_tab_init.setVisible(True)
 
-        tableWidget_init = STableWidet(self.data, checkbox_list=['ID'], filter_only_if_return_pressed=True)
-        self.ui.verticalLayout_tab_init.addWidget(tableWidget_init)
+        self.ui.tableWidget_init.set_dataframe(self.data.reset_index())
+        # tableWidget_init = STableWidet(self.data, checkbox_list=['ID'], filter_only_if_return_pressed=True)
+        # self.ui.verticalLayout_tab_init.addWidget(tableWidget_init)
 
         self.ui.tabWidget.setCurrentIndex(1)
 
     def finished_analyze(self):
         self.ui.progress_analyze.setMaximum(1)
         self.ui.progress_analyze.setValue(1)
-        print(self.data)
+        # print(self.data)
 
     def start_thread_analyze_data(self):
         self.ui.label_load.setText("Подождите, анализируются данные")
