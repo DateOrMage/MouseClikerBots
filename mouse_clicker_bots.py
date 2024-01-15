@@ -53,6 +53,8 @@ class MouseClicker(QMainWindow):
         self.ui.but_plot_trajectories.clicked.connect(self.start_thread_plot_track)
         self.ui.but_clusterize.clicked.connect(self.start_thread_clusterize)
         self.ui.but_plot_tsne.clicked.connect(self.start_thread_plot_tsne)
+        self.ui.but_save_tab_init.clicked.connect(self.start_thread_save_init_df)
+        self.ui.but_save_tab_users.clicked.connect(self.start_thread_save_users_df)
 
         self.data: DataFrame | None = None
         self.data_users: DataFrame | None = None
@@ -205,6 +207,55 @@ class MouseClicker(QMainWindow):
         thread_plot_tsne.signals.finished.connect(self.finished_plot_tsne)
 
         self.threadpool.start(thread_plot_tsne)
+
+    ###################################################
+    def save_df(self, file_name):
+        self.data.to_excel(file_name)
+        return file_name
+
+    def result_save_init_df(self, file_name):
+        self.ui.label_table_init.setText(f'Датафрейм сохранен в: {file_name}')
+
+    def finished_save_init_df(self):
+        pass
+
+    def start_thread_save_init_df(self):
+        file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить датафрейм", "",
+                                                   "Excel Files (*.xlsx);;All Files (*)")
+
+        if file_name:
+            self.ui.label_table_init.setText("Подождите, идет сохранение...")
+            # self.ui.progress_analyze.setMaximum(0)
+            # self.ui.progress_analyze.setValue(-1)
+
+            thread_save = Worker(self.save_df, file_name)
+            thread_save.signals.result.connect(self.result_save_init_df)
+            thread_save.signals.finished.connect(self.finished_save_init_df)
+
+            self.threadpool.start(thread_save)
+
+    ###################################################
+
+    def result_save_users_df(self, file_name):
+        self.ui.label_user.setText(f'Датафрейм сохранен в: {file_name}')
+
+    def finished_save_users_df(self):
+        pass
+
+    def start_thread_save_users_df(self):
+        file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить датафрейм", "",
+                                                   "Excel Files (*.xlsx);;All Files (*)")
+
+        if file_name:
+            self.ui.label_user.setText("Подождите, идет сохранение...")
+            # self.ui.progress_analyze.setMaximum(0)
+            # self.ui.progress_analyze.setValue(-1)
+
+            thread_save = Worker(self.save_df, file_name)
+            thread_save.signals.result.connect(self.result_save_users_df)
+            thread_save.signals.finished.connect(self.finished_save_users_df)
+
+            self.threadpool.start(thread_save)
 
 
 if __name__ == "__main__":
