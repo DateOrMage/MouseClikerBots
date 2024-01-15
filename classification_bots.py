@@ -20,8 +20,10 @@ class ClassificationBots:
             return 1
 
     @staticmethod
-    def get_session_time(unix_time: list) -> float:
-        return (max(unix_time) - min(unix_time)) / 1000.0
+    def get_session_time(unix_time: list) -> tuple:
+        sess_time = (max(unix_time) - min(unix_time)) / 1000.0
+
+        return sess_time, len(unix_time)/sess_time
 
     @staticmethod
     def get_speed_list(x_coords: list, y_coords: list, unix_time: list) -> list:
@@ -47,18 +49,19 @@ class ClassificationBots:
             if time_diff == 0 and speed_distance == 0:
                 acceleration = 0
             elif time_diff == 0 and speed_distance != 0:
-                acceleration = speed_distance
+                acceleration = abs(speed_distance)
             else:
-                acceleration = (speed_list[i] - speed_list[i - 1]) / time_diff
+                acceleration = abs((speed_list[i] - speed_list[i - 1]) / time_diff)
             acceleration_list.append(acceleration)
         return acceleration_list
 
     def data_analyze(self, df: DataFrame) -> DataFrame:
         df['Bot'] = np.zeros(len(df), dtype='int8')
         df['Session time'] = np.nan
+        df['APS'] = np.nan
         df['Max speed'] = np.nan
         df['Max acceleration'] = np.nan
-        df['Min acceleration'] = np.nan
+        # df['Min acceleration'] = np.nan
 
         for index, cell_value in enumerate(df[self.__coor_col]):
             try:
@@ -70,6 +73,9 @@ class ClassificationBots:
                 coord_list = coord_list[:-1]
 
             if len(coord_list[-1].split(',')) < 3:
+                coord_list = coord_list[:-1]
+
+            if len(coord_list[-1].split(',')[-1]) < 12:
                 coord_list = coord_list[:-1]
 
             if len(coord_list) < 3:
@@ -87,16 +93,18 @@ class ClassificationBots:
             y_coords = [int(coord.split(',')[1]) for coord in coord_list]
             unix_time = [int(coord.split(',')[2]) for coord in coord_list]
 
-            df.loc[index, 'Bot'] = self.get_bot_value(x_coords, y_coords)
-            df.loc[index, 'Session time'] = self.get_session_time(unix_time)
+            # df.loc[index, 'Bot'] = self.get_bot_value(x_coords, y_coords)
+            df.loc[index, 'Session time'], df.loc[index, 'APS'] = self.get_session_time(unix_time)
 
             speed_list = self.get_speed_list(x_coords, y_coords, unix_time)
             acceleration_list = self.get_acceleration_list(speed_list, unix_time)
 
             df.loc[index, 'Max speed'] = np.max(speed_list)
             df.loc[index, 'Max acceleration'] = np.max(acceleration_list)
-            df.loc[index, 'Min acceleration'] = np.min(acceleration_list)
+            # df.loc[index, 'Min acceleration'] = np.min(acceleration_list)
 
+        bot_idx = df[df['APS'] > 3].index
+        df.loc[bot_idx, 'Bot'] = 1
         return df
 
     def execute(self, df: DataFrame) -> DataFrame:

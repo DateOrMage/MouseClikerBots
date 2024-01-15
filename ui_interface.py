@@ -166,7 +166,7 @@ class Ui_MainWindow(object):
 
         self.tab_table_user.setLayout(self.verticalLayout_tab_users)
 
-        self.tableWidget_users = STableWidet(checkbox_list=['ACCOUNT_ID'], rows_per_page=500,
+        self.tableWidget_users = STableWidet(checkbox_list=['ACCOUNT_ID'], rows_per_page=1000,
                                              filter_only_if_return_pressed=False)
         self.verticalLayout_tab_users.addWidget(self.tableWidget_users)
         self.tabWidget.addTab(self.tab_table_user, "Таблица по пользователям")
@@ -212,7 +212,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_tab_sessions.addWidget(self.label_sessions)
         self.tab_table_session.setLayout(self.verticalLayout_tab_sessions)
 
-        self.tableWidget_sessions = STableWidet(checkbox_list=None, rows_per_page=500,
+        self.tableWidget_sessions = STableWidet(checkbox_list=None, rows_per_page=1000,
                                                 filter_only_if_return_pressed=False)
         self.verticalLayout_tab_sessions.addWidget(self.tableWidget_sessions)
         self.tabWidget.addTab(self.tab_table_session, "Таблица по сессиям")

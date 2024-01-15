@@ -96,7 +96,7 @@ class MouseClicker(QMainWindow):
         self.ui.but_plot_trajectories.setVisible(True)
         self.ui.but_save_tab_init.setVisible(True)
 
-        self.ui.tableWidget_init.set_dataframe(self.data.reset_index())
+        self.ui.tableWidget_init.set_dataframe(self.data.drop(['x_y_unix'], axis=1).reset_index())
 
         self.ui.tabWidget.setCurrentIndex(1)
 
@@ -120,6 +120,7 @@ class MouseClicker(QMainWindow):
     def plot_track(self):
         self.ui.matplotlib_traj_widget.reset_widget()
         self.selected_indices_track = self.ui.tableWidget_init.get_values_of_selected_items()
+        print(self.selected_indices_track)
         self.ui.matplotlib_traj_widget.canvas.axes.set_xlabel('X Coordinate')
         self.ui.matplotlib_traj_widget.canvas.axes.set_ylabel('Y Coordinate')
         self.ui.matplotlib_traj_widget.canvas.axes.set_title(f'Bot Trajectory')
@@ -208,25 +209,26 @@ class MouseClicker(QMainWindow):
 
         self.threadpool.start(thread_plot_tsne)
 
-    ###################################################
     def save_df(self, file_name):
         self.data.to_excel(file_name)
         return file_name
 
     def result_save_init_df(self, file_name):
-        self.ui.label_table_init.setText(f'Датафрейм сохранен в: {file_name}')
+        self.ui.label_load.setText(f'Данные по ботам сохранены в: {file_name}')
 
     def finished_save_init_df(self):
-        pass
+        self.ui.progress_analyze.setMaximum(1)
+        self.ui.progress_analyze.setValue(1)
 
     def start_thread_save_init_df(self):
         file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить датафрейм", "",
                                                    "Excel Files (*.xlsx);;All Files (*)")
 
         if file_name:
-            self.ui.label_table_init.setText("Подождите, идет сохранение...")
-            # self.ui.progress_analyze.setMaximum(0)
-            # self.ui.progress_analyze.setValue(-1)
+            self.ui.tabWidget.setCurrentIndex(0)
+            self.ui.label_load.setText("Подождите, идет сохранение...")
+            self.ui.progress_analyze.setMaximum(0)
+            self.ui.progress_analyze.setValue(-1)
 
             thread_save = Worker(self.save_df, file_name)
             thread_save.signals.result.connect(self.result_save_init_df)
@@ -234,24 +236,28 @@ class MouseClicker(QMainWindow):
 
             self.threadpool.start(thread_save)
 
-    ###################################################
+    def save_users_df(self, file_name: str):
+        self.data_users.to_excel(file_name)
+        return file_name
 
-    def result_save_users_df(self, file_name):
-        self.ui.label_user.setText(f'Датафрейм сохранен в: {file_name}')
+    def result_save_users_df(self, file_name: str):
+        self.ui.label_load.setText(f'Данные по пользователям сохранены в: {file_name}')
 
     def finished_save_users_df(self):
-        pass
+        self.ui.progress_analyze.setMaximum(1)
+        self.ui.progress_analyze.setValue(1)
 
     def start_thread_save_users_df(self):
         file_name, _ = QFileDialog.getSaveFileName(self, "Сохранить датафрейм", "",
                                                    "Excel Files (*.xlsx);;All Files (*)")
 
         if file_name:
-            self.ui.label_user.setText("Подождите, идет сохранение...")
-            # self.ui.progress_analyze.setMaximum(0)
-            # self.ui.progress_analyze.setValue(-1)
+            self.ui.tabWidget.setCurrentIndex(0)
+            self.ui.label_load.setText("Подождите, идет сохранение...")
+            self.ui.progress_analyze.setMaximum(0)
+            self.ui.progress_analyze.setValue(-1)
 
-            thread_save = Worker(self.save_df, file_name)
+            thread_save = Worker(self.save_users_df, file_name)
             thread_save.signals.result.connect(self.result_save_users_df)
             thread_save.signals.finished.connect(self.finished_save_users_df)
 

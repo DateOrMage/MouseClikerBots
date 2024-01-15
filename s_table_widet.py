@@ -169,6 +169,8 @@ class STableWidet(QWidget):
         self._update_page_num_line(filtering=True)
 
     def _set_filter_edits(self):
+        self.filter_line_edits = []
+
         for column in self.df.columns:
             line_edit = QLineEdit()
             line_edit.setPlaceholderText(f"Фильтр {column}")
