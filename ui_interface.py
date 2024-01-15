@@ -57,7 +57,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1200, 675)
+        MainWindow.resize(1360, 765) # 1200, 675
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
 
@@ -74,7 +74,7 @@ class Ui_MainWindow(object):
         self.tab_load.setGeometry(QRect(100, 70, 771, 391))
         self.verticalLayout = QVBoxLayout(self.tab_load)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(20, 20, 20, 20)
+        self.verticalLayout.setContentsMargins(15, 15, 15, 15)
         self.but_load_excel = QPushButton(self.tab_load)
         self.but_load_excel.setObjectName(u"but_load_excel")
 
@@ -118,7 +118,7 @@ class Ui_MainWindow(object):
         self.tab_table_init = QWidget()
         self.verticalLayout_tab_init = QVBoxLayout()
         self.verticalLayout_tab_init.setObjectName(u"verticalLayout_tab_init")
-        self.verticalLayout_tab_init.setContentsMargins(15, 15, 15, 15)
+        self.verticalLayout_tab_init.setContentsMargins(10, 10, 10, 10)
         self.tab_table_init.setObjectName(u"tab_table_init")
         self.tab_table_init.setGeometry(QRect(30, 10, 981, 551))
 
@@ -156,6 +156,7 @@ class Ui_MainWindow(object):
         # tab Table users
         self.tab_table_user = QWidget()
         self.verticalLayout_tab_users = QVBoxLayout()
+        self.verticalLayout_tab_users.setContentsMargins(10, 10, 10, 10)
         self.tab_table_user.setObjectName(u"tab_table_user")
 
         self.label_user = QLabel(self.tab_table_user)
@@ -204,6 +205,7 @@ class Ui_MainWindow(object):
         # tab table sessions
         self.tab_table_session = QWidget()
         self.verticalLayout_tab_sessions = QVBoxLayout()
+        self.verticalLayout_tab_sessions.setContentsMargins(10, 10, 10, 10)
         self.tab_table_session.setObjectName(u"tab_table_session")
         self.label_sessions = QLabel(self.tab_table_session)
         self.label_sessions.setObjectName(u"label_sessions")

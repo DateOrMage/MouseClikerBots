@@ -274,10 +274,11 @@ class MouseClicker(QMainWindow):
         df_users_list = []
         for user in self.selected_indices_users:
             df_users_list.append(self.data[self.data['ACCOUNT_ID'] == user])
-        df_session_by_users = pd.concat(df_users_list, axis=0)
-        self.ui.tableWidget_sessions.set_dataframe(df_session_by_users.drop(['x_y_unix'], axis=1).reset_index())
+        self.df_session_by_users = pd.concat(df_users_list, axis=0)
+        # self.ui.tableWidget_sessions.set_dataframe(df_session_by_users.drop(['x_y_unix'], axis=1).reset_index())
 
     def result_sessions_by_users(self):
+        self.ui.tableWidget_sessions.set_dataframe(self.df_session_by_users.drop(['x_y_unix'], axis=1).reset_index())
         self.ui.label_sessions.setVisible(True)
         self.ui.tabWidget.setCurrentIndex(5)
 
