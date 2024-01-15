@@ -2,7 +2,7 @@ import sys
 import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QHBoxLayout, \
-    QLineEdit, QPushButton, QLabel, QTabWidget, QFileDialog
+    QLineEdit, QPushButton, QLabel, QTabWidget, QFileDialog, QSpacerItem, QSizePolicy
 
 
 class STableWidet(QWidget):
@@ -32,6 +32,9 @@ class STableWidet(QWidget):
         self.rows_per_page = self.default_rows_per_page
         self.checkbox_list = checkbox_list
         self.filter_only_if_pressed = filter_only_if_return_pressed
+        self.selected_items = []
+        self.ui_created = False
+
 
         self._initialize_ui()
 
@@ -44,6 +47,8 @@ class STableWidet(QWidget):
         self.filter_line_edits = []
         self.filter_layout = QHBoxLayout()
         self.filter_layout.setSpacing(0)
+        self.filter_layout.setContentsMargins(0, 0, 0, 0)
+        # self.filter_layout.set
 
         self._set_filter_edits()
 
@@ -83,6 +88,7 @@ class STableWidet(QWidget):
         self._update_table()
 
         self.setWindowTitle("Статистическая таблица)")
+        external_layout.setContentsMargins(0, 0, 0, 0)
 
         self.setLayout(external_layout)
 
@@ -99,7 +105,7 @@ class STableWidet(QWidget):
 
     @staticmethod
     def _add_padding_to_filters(width, filter_layout):
-        filter_layout.setContentsMargins(width, 0, 0, 0)
+        pass#filter_layout.setContentsMargins(width, 0, 0, 0)
 
     def _on_column_resized(self, idx, prev_size, new_size):
         self.filter_line_edits[idx].setFixedWidth(new_size)
@@ -169,8 +175,17 @@ class STableWidet(QWidget):
         self._update_page_num_line(filtering=True)
 
     def _set_filter_edits(self):
-        self.filter_line_edits = []
+        def clearLayout(layout):
+            while layout.count():
+                child = layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
 
+        clearLayout(self.filter_layout)
+
+        self.filter_line_edits = []
+        self.filter_layout.setContentsMargins(0, 0, 0, 0)
+        print(self.df.columns)
         for column in self.df.columns:
             line_edit = QLineEdit()
             line_edit.setPlaceholderText(f"Фильтр {column}")
@@ -184,9 +199,14 @@ class STableWidet(QWidget):
             self.filter_line_edits.append(line_edit)
             self.filter_layout.addWidget(line_edit)
 
+        #self.filter_layout.addStretch(2)
+        #spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        # self.filter_layout.addSpacerItem(spacer)
         self.filter_layout.addStretch(1)
 
     def _set_table(self):
+        self.selected_items = []
+
         self.table_widget.setColumnCount(len(self.df.columns))
         self.table_widget.setRowCount(len(self.df))
 
@@ -210,6 +230,7 @@ class STableWidet(QWidget):
 
                 self.table_widget.setItem(i, j, item)
 
+        self.table_widget.itemChanged.connect(self._check_cell)
         self.table_widget.horizontalHeader().sectionResized.connect(self._on_column_resized)
         self.table_widget.setSortingEnabled(True)
 
@@ -217,7 +238,24 @@ class STableWidet(QWidget):
         self.table_widget.verticalHeader().setFixedWidth(self.table_widget.verticalHeader().width())
         self._add_padding_to_filters(self.table_widget.verticalHeader().width(), self.filter_layout)
 
+        self.ui_created = True
+
+
+    def _check_cell(self, item):
+
+        if self.ui_created is False:
+            return
+
+        if item.checkState() == Qt.Checked and item not in self.selected_items:
+            self.selected_items.append(item)
+        elif item.checkState() == Qt.Unchecked and item in self.selected_items:
+            self.selected_items.remove(item)
+        print(self.selected_items)
+
+
     def set_dataframe(self, dataframe):
+        self.ui_created = False
+
         self.df = dataframe
 
         self._set_filter_edits()
@@ -227,19 +265,28 @@ class STableWidet(QWidget):
         self._update_table()
 
 
-    def get_index_of_selected_items(self):
-        # функция для возвращения индексов чекбокснутых записей
-        selected_indices = []
-        for row in range(self.table_widget.rowCount()):
-            for col in range(self.table_widget.columnCount()):
-                if self.table_widget.item(row, col).checkState() == Qt.Checked:
-                    selected_indices.append(row)
-                    break
-        return selected_indices
+    # def get_index_of_selected_items(self):
+    #     # функция для возвращения индексов чекбокснутых записей
+    #     selected_indices = []
+    #     for row in range(self.table_widget.rowCount()):
+    #         for col in range(self.table_widget.columnCount()):
+    #             if self.table_widget.item(row, col).checkState() == Qt.Checked:
+    #                 selected_indices.append(row)
+    #                 break
+    #     return selected_indices
 
     def get_values_of_selected_items(self):
         # функция для возвращения чекбокснутых значений
-        return self.df.loc[self.get_index_of_selected_items(), self.checkbox_list[0]].values
+        # return self.df.loc[self.get_index_of_selected_items(), self.checkbox_list[0]].values
+        checked_items = []
+
+        for item in self.selected_items:
+            checked_items.append(item.text())
+
+        for item in self.selected_items:
+            item.setCheckState(Qt.Unchecked)
+
+        return checked_items
 
 
 if __name__ == "__main__":

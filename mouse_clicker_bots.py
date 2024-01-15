@@ -1,4 +1,6 @@
 import sys
+
+import pandas as pd
 from PySide6 import QtWidgets
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 from PySide6.QtSql import QSqlTableModel
@@ -55,6 +57,7 @@ class MouseClicker(QMainWindow):
         self.ui.but_plot_tsne.clicked.connect(self.start_thread_plot_tsne)
         self.ui.but_save_tab_init.clicked.connect(self.start_thread_save_init_df)
         self.ui.but_save_tab_users.clicked.connect(self.start_thread_save_users_df)
+        self.ui.but_filtred_users.clicked.connect(self.start_thread_sessions_by_users)
 
         self.data: DataFrame | None = None
         self.data_users: DataFrame | None = None
@@ -120,7 +123,7 @@ class MouseClicker(QMainWindow):
     def plot_track(self):
         self.ui.matplotlib_traj_widget.reset_widget()
         self.selected_indices_track = self.ui.tableWidget_init.get_values_of_selected_items()
-        print(self.selected_indices_track)
+        self.selected_indices_track = [int(id_session) for id_session in self.selected_indices_track]
         self.ui.matplotlib_traj_widget.canvas.axes.set_xlabel('X Coordinate')
         self.ui.matplotlib_traj_widget.canvas.axes.set_ylabel('Y Coordinate')
         self.ui.matplotlib_traj_widget.canvas.axes.set_title(f'Bot Trajectory')
@@ -262,6 +265,31 @@ class MouseClicker(QMainWindow):
             thread_save.signals.finished.connect(self.finished_save_users_df)
 
             self.threadpool.start(thread_save)
+
+    # session by users
+    def sessions_by_users(self):
+
+        self.selected_indices_users = self.ui.tableWidget_users.get_values_of_selected_items()
+        print(self.selected_indices_users)
+        df_users_list = []
+        for user in self.selected_indices_users:
+            df_users_list.append(self.data[self.data['ACCOUNT_ID'] == user])
+        df_session_by_users = pd.concat(df_users_list, axis=0)
+        self.ui.tableWidget_sessions.set_dataframe(df_session_by_users.drop(['x_y_unix'], axis=1).reset_index())
+
+    def result_sessions_by_users(self):
+        self.ui.label_sessions.setVisible(True)
+        self.ui.tabWidget.setCurrentIndex(5)
+
+    def finished_sessions_by_users(self):
+        pass
+
+    def start_thread_sessions_by_users(self):
+        thread_sessions_by_users = Worker(self.sessions_by_users)
+        thread_sessions_by_users.signals.result.connect(self.result_sessions_by_users)
+        thread_sessions_by_users.signals.finished.connect(self.finished_sessions_by_users)
+
+        self.threadpool.start(thread_sessions_by_users)
 
 
 if __name__ == "__main__":
