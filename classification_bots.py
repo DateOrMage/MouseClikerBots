@@ -26,6 +26,14 @@ class ClassificationBots:
         return sess_time, len(unix_time)/sess_time
 
     @staticmethod
+    def get_length_list(x_coords: list, y_coords: list, unix_time: list) -> list:
+        length_list = []
+        for i in range(1, len(unix_time)):
+            distance = np.sqrt((x_coords[i] - x_coords[i - 1]) ** 2 + (y_coords[i] - y_coords[i - 1]) ** 2)
+            length_list.append(distance)
+        return length_list
+
+    @staticmethod
     def get_speed_list(x_coords: list, y_coords: list, unix_time: list) -> list:
         speed_list = []
         for i in range(1, len(unix_time)):
@@ -56,12 +64,21 @@ class ClassificationBots:
         return acceleration_list
 
     def data_analyze(self, df: DataFrame) -> DataFrame:
-        df['Bot'] = np.zeros(len(df), dtype='int8')
+
         df['Session time'] = np.nan
-        df['APS'] = np.nan
+        df['Avg length'] = np.nan
+        df['Std length'] = np.nan
+        df['Min speed'] = np.nan
         df['Max speed'] = np.nan
+        df['Avg speed'] = np.nan
+        df['Std speed'] = np.nan
+        df['Min acceleration'] = np.nan
         df['Max acceleration'] = np.nan
+        df['Avg acceleration'] = np.nan
+        df['Std acceleration'] = np.nan
         # df['Min acceleration'] = np.nan
+        df['CPS'] = np.nan
+        df['Bot'] = np.zeros(len(df), dtype='int8')
 
         for index, cell_value in enumerate(df[self.__coor_col]):
             try:
@@ -94,16 +111,28 @@ class ClassificationBots:
             unix_time = [int(coord.split(',')[2]) for coord in coord_list]
 
             # df.loc[index, 'Bot'] = self.get_bot_value(x_coords, y_coords)
-            df.loc[index, 'Session time'], df.loc[index, 'APS'] = self.get_session_time(unix_time)
+            df.loc[index, 'Session time'], df.loc[index, 'CPS'] = self.get_session_time(unix_time)
 
+            length_list = self.get_length_list(x_coords, y_coords, unix_time)
             speed_list = self.get_speed_list(x_coords, y_coords, unix_time)
             acceleration_list = self.get_acceleration_list(speed_list, unix_time)
 
+            df.loc[index, 'Avg length'] = np.mean(length_list)
+            df.loc[index, 'Std length'] = np.std(length_list)
+            df.loc[index, 'Min speed'] = np.min(speed_list)
             df.loc[index, 'Max speed'] = np.max(speed_list)
+            df.loc[index, 'Avg speed'] = np.mean(speed_list)
+            df.loc[index, 'Std speed'] = np.std(speed_list)
+            df.loc[index, 'Min acceleration'] = np.min(acceleration_list)
             df.loc[index, 'Max acceleration'] = np.max(acceleration_list)
+            df.loc[index, 'Avg acceleration'] = np.mean(acceleration_list)
+            df.loc[index, 'Std acceleration'] = np.std(acceleration_list)
+
+            # df.loc[index, 'Max speed'] = np.max(speed_list)
+            # df.loc[index, 'Max acceleration'] = np.max(acceleration_list)
             # df.loc[index, 'Min acceleration'] = np.min(acceleration_list)
 
-        bot_idx = df[df['APS'] > 3].index
+        bot_idx = df[df['CPS'] > 3].index
         df.loc[bot_idx, 'Bot'] = 1
         return df
 

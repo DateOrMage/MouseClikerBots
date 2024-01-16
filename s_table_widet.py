@@ -2,7 +2,7 @@ import sys
 import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QHBoxLayout, \
-    QLineEdit, QPushButton, QLabel, QTabWidget, QFileDialog, QSpacerItem, QSizePolicy
+    QLineEdit, QPushButton, QLabel, QTabWidget, QFileDialog, QSpacerItem, QSizePolicy, QHeaderView
 
 
 class STableWidet(QWidget):
@@ -56,6 +56,11 @@ class STableWidet(QWidget):
 
         # Виджет для таблицы
         self.table_widget = QTableWidget()
+        self.table_widget.itemChanged.connect(self._check_cell)
+        self.table_widget.horizontalHeader().sectionResized.connect(self._on_column_resized)
+        #self.table_widget.verticalHeader().setFixedWidth(self.table_widget.verticalHeader().width())
+        self.table_widget.verticalHeader().setVisible(False)
+        self.table_widget.setSortingEnabled(True)
 
         self._set_table()
 
@@ -103,14 +108,11 @@ class STableWidet(QWidget):
     #     self.set_dataframe(df)
     #закоменить
 
-    @staticmethod
-    def _add_padding_to_filters(width, filter_layout):
-        pass#filter_layout.setContentsMargins(width, 0, 0, 0)
-
     def _on_column_resized(self, idx, prev_size, new_size):
         self.filter_line_edits[idx].setFixedWidth(new_size)
 
     def _update_table(self):
+        #self.table_widget.sortItems(0, Qt.SortOrder.AscendingOrder)
         start_row = self.current_page * self.rows_per_page
         if start_row + self.rows_per_page < len(self.df):
             end_row = start_row + self.rows_per_page
@@ -185,7 +187,6 @@ class STableWidet(QWidget):
 
         self.filter_line_edits = []
         self.filter_layout.setContentsMargins(0, 0, 0, 0)
-        print(self.df.columns)
         for column in self.df.columns:
             line_edit = QLineEdit()
             line_edit.setPlaceholderText(f"Фильтр {column}")
@@ -195,7 +196,7 @@ class STableWidet(QWidget):
             else:
                 line_edit.textChanged.connect(self._filter_table)
 
-            line_edit.setFixedWidth(100)
+            #line_edit.setFixedWidth(100)
             self.filter_line_edits.append(line_edit)
             self.filter_layout.addWidget(line_edit)
 
@@ -206,6 +207,9 @@ class STableWidet(QWidget):
 
     def _set_table(self):
         self.selected_items = []
+
+        self.table_widget.setColumnCount(0)
+        self.table_widget.setRowCount(0)
 
         self.table_widget.setColumnCount(len(self.df.columns))
         self.table_widget.setRowCount(len(self.df))
@@ -218,8 +222,12 @@ class STableWidet(QWidget):
                 if pd.api.types.is_numeric_dtype(self.df[self.df.columns[j]]):
                     # print(self.df[self.df.columns[j]].dtype)
                     item = QTableWidgetItem()
+                    if 'int' in str(type(self.df.iloc[i, j])):
                     #item.setData(Qt.DisplayRole, int(self.df.iloc[i, j]))
-                    item.setData(Qt.EditRole, int(self.df.iloc[i, j]))
+                        item.setData(Qt.EditRole, int(self.df.iloc[i, j]))
+                    else:
+                        item.setData(Qt.EditRole, float(self.df.iloc[i, j]))
+
                 else:
                     item = QTableWidgetItem(str(self.df.iloc[i, j]))
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
@@ -230,13 +238,8 @@ class STableWidet(QWidget):
 
                 self.table_widget.setItem(i, j, item)
 
-        self.table_widget.itemChanged.connect(self._check_cell)
-        self.table_widget.horizontalHeader().sectionResized.connect(self._on_column_resized)
-        self.table_widget.setSortingEnabled(True)
 
-        self.table_widget.verticalHeader().setVisible(True)
-        self.table_widget.verticalHeader().setFixedWidth(self.table_widget.verticalHeader().width())
-        self._add_padding_to_filters(self.table_widget.verticalHeader().width(), self.filter_layout)
+        self.table_widget.resizeColumnsToContents()
 
         self.ui_created = True
 
@@ -250,7 +253,6 @@ class STableWidet(QWidget):
             self.selected_items.append(item)
         elif item.checkState() == Qt.Unchecked and item in self.selected_items:
             self.selected_items.remove(item)
-        print(self.selected_items)
 
 
     def set_dataframe(self, dataframe):

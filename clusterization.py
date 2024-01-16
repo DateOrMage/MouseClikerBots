@@ -12,7 +12,7 @@ class Clusterization:
     def get_cluster_by_user(self, df: DataFrame) -> tuple:
         clustering_df = df.groupby('ACCOUNT_ID').agg(
             Number_of_Sessions=NamedAgg(column='ID', aggfunc='count'),
-            Average_APS=NamedAgg(column='APS', aggfunc='mean'),
+            Average_CPS=NamedAgg(column='CPS', aggfunc='mean'),
             Average_Max_Speed=NamedAgg(column='Max speed', aggfunc='mean'),
             Average_Max_Acceleration=NamedAgg(column='Max acceleration', aggfunc='mean'),
             # Average_Min_Acceleration=NamedAgg(column='Min acceleration', aggfunc='mean'),

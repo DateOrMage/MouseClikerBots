@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
+                            QMetaObject, QObject, QPoint, QRect,
+                            QSize, QTime, QUrl, Qt, QByteArray)
 from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
@@ -18,6 +18,7 @@ import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from s_table_widet import STableWidet
+
 matplotlib.use('qtagg')
 plt.ioff()
 
@@ -60,6 +61,10 @@ class Ui_MainWindow(object):
         MainWindow.resize(1360, 765) # 1200, 675
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
+
+        # icon = QIcon()
+        # icon.addFile(u"C:\\Users\\Пользователь\\Downloads\\free_icon_1.png", QSize(), QIcon.Normal)
+        # MainWindow.setWindowIcon(icon)
 
         # central widget layout
         self.verticalLayout_central = QVBoxLayout(self.centralwidget)

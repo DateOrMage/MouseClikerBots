@@ -2,6 +2,7 @@ import sys
 
 import pandas as pd
 from PySide6 import QtWidgets
+from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 from PySide6.QtSql import QSqlTableModel
 from PySide6.QtCore import Signal, Slot, QRunnable, QThreadPool, QObject, QByteArray, QThread
@@ -16,6 +17,7 @@ from load_file import LoadFile
 from classification_bots import ClassificationBots
 from support_plot import get_x_y_cooor_and_label
 from clusterization import Clusterization
+from resources import ICON_BYTES_STR
 
 
 class WorkerSignals(QObject):
@@ -48,6 +50,8 @@ class MouseClicker(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.set_init_ui_settings()
+
         self.threadpool = QThreadPool()
 
         self.ui.but_load_excel.clicked.connect(self.start_thread_load_excel)
@@ -62,6 +66,11 @@ class MouseClicker(QMainWindow):
         self.data: DataFrame | None = None
         self.data_users: DataFrame | None = None
         self.tsne_data: ndarray | None = None
+
+    def set_init_ui_settings(self):
+        pm_icon = QPixmap()
+        pm_icon.loadFromData(QByteArray(ICON_BYTES_STR))
+        self.setWindowIcon(QIcon(pm_icon))
 
     def result_load(self, res):
         self.data = res[0]  # data
@@ -203,9 +212,14 @@ class MouseClicker(QMainWindow):
         self.ui.tabWidget.setCurrentIndex(4)
 
     def finished_plot_tsne(self):
-        pass
+        self.ui.progress_analyze.setMaximum(1)
+        self.ui.progress_analyze.setValue(1)
 
     def start_thread_plot_tsne(self):
+        self.ui.tabWidget.setCurrentIndex(0)
+        self.ui.progress_analyze.setMaximum(0)
+        self.ui.progress_analyze.setValue(-1)
+
         thread_plot_tsne = Worker(self.plot_tsne)
         thread_plot_tsne.signals.result.connect(self.result_plot_tsne)
         thread_plot_tsne.signals.finished.connect(self.finished_plot_tsne)
