@@ -6,6 +6,15 @@ def get_x_y_cooor_and_label(df: DataFrame, col_name: str, cell_value: any) -> tu
     df_row = df[df[col_name] == cell_value]
     coord_list = df_row['x_y_unix'].iloc[0].split(';')
 
+    if coord_list[-1].endswith(','):
+        coord_list = coord_list[:-1]
+
+    if len(coord_list[-1].split(',')) < 3:
+        coord_list = coord_list[:-1]
+
+    if len(coord_list[-1].split(',')[-1]) < 12:
+        coord_list = coord_list[:-1]
+
     x_coords = [int(coord.split(',')[0]) for coord in coord_list]
     y_coords = [int(coord.split(',')[1]) for coord in coord_list]
 

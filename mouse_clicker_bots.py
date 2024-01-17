@@ -12,17 +12,18 @@ from ui_interface import Ui_MainWindow, MatplotlibWidget
 from pandas import DataFrame
 from numpy import ndarray
 from sklearn.manifold import TSNE
+import traceback
 
 from load_file import LoadFile
 from classification_bots import ClassificationBots
 from support_plot import get_x_y_cooor_and_label
 from clusterization import Clusterization
-from resources import ICON_BYTES_STR
 
 
 class WorkerSignals(QObject):
     result = Signal(object)
     finished = Signal()
+    error = Signal(str)
 
 
 class Worker(QRunnable):
@@ -37,7 +38,7 @@ class Worker(QRunnable):
         try:
             res_func = self.my_func(*self.args)
         except:
-            pass
+            self.signals.error.emit((traceback.format_exc()))
         else:
             self.signals.result.emit(res_func)
         finally:
@@ -50,7 +51,7 @@ class MouseClicker(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.set_init_ui_settings()
+        # self.set_init_ui_settings()
 
         self.threadpool = QThreadPool()
 
@@ -68,10 +69,14 @@ class MouseClicker(QMainWindow):
         self.data_users: DataFrame | None = None
         self.tsne_data: ndarray | None = None
 
-    def set_init_ui_settings(self):
-        pm_icon = QPixmap()
-        pm_icon.loadFromData(QByteArray(ICON_BYTES_STR))
-        self.setWindowIcon(QIcon(pm_icon))
+    def error_perform(self, traceback_info):
+        self.ui.label_load.setText(traceback_info)
+        self.ui.tabWidget.setCurrentIndex(0)
+
+    # def set_init_ui_settings(self):
+    #     pm_icon = QPixmap()
+    #     pm_icon.loadFromData(QByteArray(ICON_BYTES_STR))
+    #     self.setWindowIcon(QIcon(pm_icon))
 
     def result_load(self, res):
         self.data = res[0]  # data
@@ -95,6 +100,7 @@ class MouseClicker(QMainWindow):
             lf = LoadFile(file_path)
             thread_load = Worker(lf.execute)
             thread_load.signals.result.connect(self.result_load)
+            thread_load.signals.error.connect(self.error_perform)
             thread_load.signals.finished.connect(self.finished_load)
 
             self.threadpool.start(thread_load)
@@ -125,6 +131,7 @@ class MouseClicker(QMainWindow):
         cb = ClassificationBots()
         thread_analyze = Worker(cb.execute, self.data)
         thread_analyze.signals.result.connect(self.result_analyze)
+        thread_analyze.signals.error.connect(self.error_perform)
         thread_analyze.signals.finished.connect(self.finished_analyze)
 
         self.threadpool.start(thread_analyze)
@@ -158,6 +165,7 @@ class MouseClicker(QMainWindow):
     def start_thread_plot_track(self):
         thread_plot_track = Worker(self.plot_track, 'init')
         thread_plot_track.signals.result.connect(self.result_plot_track)
+        thread_plot_track.signals.error.connect(self.error_perform)
         thread_plot_track.signals.finished.connect(self.finished_plot_track)
 
         self.threadpool.start(thread_plot_track)
@@ -190,6 +198,7 @@ class MouseClicker(QMainWindow):
         cluster = Clusterization()
         thread_cluster = Worker(cluster.execute, self.data)
         thread_cluster.signals.result.connect(self.result_clusterize)
+        thread_cluster.signals.error.connect(self.error_perform)
         thread_cluster.signals.finished.connect(self.finished_clusterize)
 
         self.threadpool.start(thread_cluster)
@@ -228,6 +237,7 @@ class MouseClicker(QMainWindow):
 
         thread_plot_tsne = Worker(self.plot_tsne)
         thread_plot_tsne.signals.result.connect(self.result_plot_tsne)
+        thread_plot_tsne.signals.error.connect(self.error_perform)
         thread_plot_tsne.signals.finished.connect(self.finished_plot_tsne)
 
         self.threadpool.start(thread_plot_tsne)
@@ -255,6 +265,7 @@ class MouseClicker(QMainWindow):
 
             thread_save = Worker(self.save_df, file_name)
             thread_save.signals.result.connect(self.result_save_init_df)
+            thread_save.signals.error.connect(self.error_perform)
             thread_save.signals.finished.connect(self.finished_save_init_df)
 
             self.threadpool.start(thread_save)
@@ -282,6 +293,7 @@ class MouseClicker(QMainWindow):
 
             thread_save = Worker(self.save_users_df, file_name)
             thread_save.signals.result.connect(self.result_save_users_df)
+            thread_save.signals.error.connect(self.error_perform)
             thread_save.signals.finished.connect(self.finished_save_users_df)
 
             self.threadpool.start(thread_save)
@@ -310,6 +322,7 @@ class MouseClicker(QMainWindow):
     def start_thread_sessions_by_users(self):
         thread_sessions_by_users = Worker(self.sessions_by_users)
         thread_sessions_by_users.signals.result.connect(self.result_sessions_by_users)
+        thread_sessions_by_users.signals.error.connect(self.error_perform)
         thread_sessions_by_users.signals.finished.connect(self.finished_sessions_by_users)
 
         self.threadpool.start(thread_sessions_by_users)
@@ -317,6 +330,7 @@ class MouseClicker(QMainWindow):
     def start_thread_plot_track_end(self):
         thread_plot_track_end = Worker(self.plot_track, 'session')
         thread_plot_track_end.signals.result.connect(self.result_plot_track)
+        thread_plot_track_end.signals.error.connect(self.error_perform)
         thread_plot_track_end.signals.finished.connect(self.finished_plot_track)
 
         self.threadpool.start(thread_plot_track_end)
