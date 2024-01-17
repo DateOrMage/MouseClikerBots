@@ -9,10 +9,10 @@ def get_x_y_cooor_and_label(df: DataFrame, col_name: str, cell_value: any) -> tu
     x_coords = [int(coord.split(',')[0]) for coord in coord_list]
     y_coords = [int(coord.split(',')[1]) for coord in coord_list]
 
-    if df_row['Bot'].iloc[0] == 0:
+    if df_row['Bot'].iloc[0] == '0':
         label = f"Session {df_row['ID'].iloc[0]} - Не бот"
     else:
-        label = f"Session {df_row['ID'].iloc[0]} - Бот"
+        label = f"Session {df_row['ID'].iloc[0]} - Бот класса {df_row['Bot'].iloc[0]}"
 
     return x_coords, y_coords, label
 

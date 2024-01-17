@@ -62,6 +62,7 @@ class MouseClicker(QMainWindow):
         self.ui.but_save_tab_init.clicked.connect(self.start_thread_save_init_df)
         self.ui.but_save_tab_users.clicked.connect(self.start_thread_save_users_df)
         self.ui.but_filtred_users.clicked.connect(self.start_thread_sessions_by_users)
+        self.ui.but_plot_trajectories_end.clicked.connect(self.start_thread_plot_track_end)
 
         self.data: DataFrame | None = None
         self.data_users: DataFrame | None = None
@@ -129,14 +130,19 @@ class MouseClicker(QMainWindow):
         self.threadpool.start(thread_analyze)
 
     # plot trajectories
-    def plot_track(self):
+    def plot_track(self, table_widget: str):
         self.ui.matplotlib_traj_widget.reset_widget()
-        self.selected_indices_track = self.ui.tableWidget_init.get_values_of_selected_items()
-        self.selected_indices_track = [int(id_session) for id_session in self.selected_indices_track]
+        if table_widget == 'init':
+            selected_indices_track = self.ui.tableWidget_init.get_values_of_selected_items()
+        elif table_widget == 'session':
+            selected_indices_track = self.ui.tableWidget_sessions.get_values_of_selected_items()
+        else:
+            selected_indices_track = []
+        selected_indices_track = [int(id_session) for id_session in selected_indices_track]
         self.ui.matplotlib_traj_widget.canvas.axes.set_xlabel('X Coordinate')
         self.ui.matplotlib_traj_widget.canvas.axes.set_ylabel('Y Coordinate')
         self.ui.matplotlib_traj_widget.canvas.axes.set_title(f'Bot Trajectory')
-        for value in self.selected_indices_track:
+        for value in selected_indices_track:
             x_coords, y_coords, label = get_x_y_cooor_and_label(self.data, self.ui.tableWidget_init.checkbox_list[0],
                                                                 value)
             self.ui.matplotlib_traj_widget.canvas.axes.plot(x_coords, y_coords, marker='o', linestyle='-', label=label)
@@ -150,7 +156,7 @@ class MouseClicker(QMainWindow):
         pass
 
     def start_thread_plot_track(self):
-        thread_plot_track = Worker(self.plot_track)
+        thread_plot_track = Worker(self.plot_track, 'init')
         thread_plot_track.signals.result.connect(self.result_plot_track)
         thread_plot_track.signals.finished.connect(self.finished_plot_track)
 
@@ -190,20 +196,20 @@ class MouseClicker(QMainWindow):
 
     def plot_tsne(self):
         self.ui.matplotlib_tsne_widget.reset_widget()
-        # self.selected_indices_track = self.ui.tableWidget_init.get_values_of_selected_items()
         self.ui.matplotlib_tsne_widget.canvas.axes.set_xlabel('t-SNE Dimension 1')
         self.ui.matplotlib_tsne_widget.canvas.axes.set_ylabel('t-SNE Dimension 2')
         self.ui.matplotlib_tsne_widget.canvas.axes.set_title(f't-SNE Visualization with Clusters')
 
         tsne = TSNE(n_components=2, random_state=42)
         tsne_data = tsne.fit_transform(self.tsne_data)
+        n_clusters = self.data_users['User_cluster'].nunique()
 
-        for i in range(3):
+        for i in range(n_clusters):
             self.ui.matplotlib_tsne_widget.canvas.axes.scatter(tsne_data[self.data_users['User_cluster'] == i, 0],
                                                                tsne_data[self.data_users['User_cluster'] == i, 1],
-                                                               label={0: "Не бот (0)", 1: "Бот (1)",
-                                                                      2: "Не определено (2)"}[i],
-                                                               s=5
+                                                               #label={0: "Не бот (0)", 1: "Бот (1)",
+                                                               #       2: "Не определено (2)"}[i],
+                                                               #s=5
                                                                )
         self.ui.matplotlib_tsne_widget.canvas.axes.legend()
 
@@ -294,6 +300,8 @@ class MouseClicker(QMainWindow):
     def result_sessions_by_users(self):
         self.ui.tableWidget_sessions.set_dataframe(self.df_session_by_users.drop(['x_y_unix'], axis=1).reset_index())
         self.ui.label_sessions.setVisible(True)
+        self.ui.but_plot_trajectories_end.setVisible(True)
+        self.ui.but_plot_trajectories_end.setEnabled(True)
         self.ui.tabWidget.setCurrentIndex(5)
 
     def finished_sessions_by_users(self):
@@ -305,6 +313,13 @@ class MouseClicker(QMainWindow):
         thread_sessions_by_users.signals.finished.connect(self.finished_sessions_by_users)
 
         self.threadpool.start(thread_sessions_by_users)
+
+    def start_thread_plot_track_end(self):
+        thread_plot_track_end = Worker(self.plot_track, 'session')
+        thread_plot_track_end.signals.result.connect(self.result_plot_track)
+        thread_plot_track_end.signals.finished.connect(self.finished_plot_track)
+
+        self.threadpool.start(thread_plot_track_end)
 
 
 if __name__ == "__main__":

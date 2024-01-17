@@ -219,10 +219,18 @@ class Ui_MainWindow(object):
         self.verticalLayout_tab_sessions.addWidget(self.label_sessions)
         self.tab_table_session.setLayout(self.verticalLayout_tab_sessions)
 
-        self.tableWidget_sessions = STableWidet(checkbox_list=None, rows_per_page=1000,
+        self.tableWidget_sessions = STableWidet(checkbox_list=['ID'], rows_per_page=1000,
                                                 filter_only_if_return_pressed=False)
         self.verticalLayout_tab_sessions.addWidget(self.tableWidget_sessions)
         self.tabWidget.addTab(self.tab_table_session, "Таблица по сессиям")
+
+        # button plot track at end tab
+        self.but_plot_trajectories_end = QPushButton()
+        self.but_plot_trajectories_end.setObjectName(u"but_plot_trajectories")
+        self.but_plot_trajectories_end.setText('Построить график траекторий')
+        self.but_plot_trajectories_end.setEnabled(False)
+        self.but_plot_trajectories_end.setVisible(False)
+        self.verticalLayout_tab_sessions.addWidget(self.but_plot_trajectories_end)
 
         self.verticalLayout_central.addWidget(self.tabWidget)
 

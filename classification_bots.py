@@ -1,3 +1,5 @@
+import time
+
 from pandas import DataFrame
 import numpy as np
 
@@ -20,10 +22,9 @@ class ClassificationBots:
             return 1
 
     @staticmethod
-    def get_session_time(unix_time: list) -> tuple:
-        sess_time = (max(unix_time) - min(unix_time)) / 1000.0
+    def get_session_time(unix_time: list) -> float:
 
-        return sess_time, len(unix_time)/sess_time
+        return (max(unix_time) - min(unix_time)) / 1000.0
 
     @staticmethod
     def get_length_list(x_coords: list, y_coords: list, unix_time: list) -> list:
@@ -63,6 +64,104 @@ class ClassificationBots:
             acceleration_list.append(acceleration)
         return acceleration_list
 
+    @staticmethod
+    def get_duplicate_return_points(x_coords: list, y_coords: list) -> int:
+        coords_str = [",".join([str(x), str(y)]) for x, y in zip(x_coords, y_coords)]
+        coords_dict = {}
+        for i in range(1, len(coords_str)-1):
+            if coords_str[i] == coords_str[i - 1]:
+                continue
+            if coords_str[i-1] == coords_str[i+1]:
+                x1, y1 = coords_str[i-1].split(',')
+                x2, y2 = coords_str[i].split(',')
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                return_length = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+                if return_length > 30:
+                    return 1
+
+        #     coords_dict[coords_str[i]] = coords_dict.get(coords_str[i], 0) + 1             
+        # same_coords_sum = sum([i for i in coords_dict.values() if i != 1])
+        # same_coords_max = max(coords_dict.values())
+        # if same_coords_max == 1:
+        #     same_coords_max = 0
+
+        return 0
+
+    @staticmethod
+    def get_no_cross(x_coords, y_coords):
+        x_sign_list = np.unique(np.sign(np.diff(x_coords)))
+        y_sign_list = np.unique(np.sign(np.diff(y_coords)))
+        x_sign_list = x_sign_list[x_sign_list != 0]
+        y_sign_list = y_sign_list[y_sign_list != 0]
+        if len(x_sign_list) > 1 and len(y_sign_list) > 1:
+            return 0
+        else:
+            return 1
+
+    @staticmethod
+    def get_line_coef(x1: int, x2: int, y1: int, y2: int) -> tuple:
+        k = (y2 - y1) / (x2 - x1)
+        b = y1 - k * x1
+        return k, b
+
+    @staticmethod
+    def get_line_length(line: list) -> float:
+        return np.sqrt((line[0][0] - line[-1][0])**2 + (line[0][1] - line[-1][1])**2)
+
+    def get_length_straight_line(self, x_coords: list, y_coords: list) -> tuple:
+        current_straight_line = []
+        max_straight_line_length = 0
+        n_straight_lines = 0
+        i = 0
+        while i < len(x_coords) - 2:
+            # x1 != x2, y1 != y2
+            if x_coords[i] != x_coords[i + 1]:
+                k, b = self.get_line_coef(x_coords[i], x_coords[i + 1], y_coords[i], y_coords[i + 1])
+                current_straight_line.append((x_coords[i], y_coords[i]))
+                current_straight_line.append((x_coords[i + 1], y_coords[i + 1]))
+                i += 2
+                while i < len(x_coords) - 2:
+                    if x_coords[i] == x_coords[i - 1]:
+                        i += 1
+                        continue
+                    if k * x_coords[i] + b == y_coords[i]:
+                        current_straight_line.append((x_coords[i], y_coords[i]))
+                        i += 1
+                    else:
+                        if len(current_straight_line) > 3:
+                            n_straight_lines += 1
+                            line_length = self.get_line_length(current_straight_line)
+                            if max_straight_line_length < line_length:
+                                max_straight_line_length = line_length
+                        current_straight_line = []
+                        break
+
+            # x1 = x2, y1 != y2
+            elif x_coords[i] == x_coords[i + 1] and y_coords[i] != y_coords[i + 1]:
+                x_const = x_coords[i]
+                current_straight_line.append((x_coords[i], y_coords[i]))
+                current_straight_line.append((x_coords[i + 1], y_coords[i + 1]))
+                i += 2
+                while i < len(x_coords) - 2:
+                    if y_coords[i] == y_coords[i - 1]:
+                        i += 1
+                        continue
+                    if x_coords[i] == x_const:
+                        current_straight_line.append((x_coords[i], y_coords[i]))
+                        i += 1
+                    else:
+                        if len(current_straight_line) > 3:
+                            n_straight_lines += 1
+                            line_length = self.get_line_length(current_straight_line)
+                            if max_straight_line_length < line_length:
+                                max_straight_line_length = line_length
+                        current_straight_line = []
+                        break
+            else:
+                i += 1
+
+        return max_straight_line_length, n_straight_lines
+
     def data_analyze(self, df: DataFrame) -> DataFrame:
 
         df['Session time'] = np.nan
@@ -76,9 +175,16 @@ class ClassificationBots:
         df['Max acceleration'] = np.nan
         df['Avg acceleration'] = np.nan
         df['Std acceleration'] = np.nan
+
+        df['No cross'] = np.nan
+        df['Straight line length'] = np.nan
+        df['Straight line number'] = np.nan
+        df['Straight line frequency'] = np.nan
+
+        df['Duplicate return points'] = np.nan
+        # df['Duplicate points max'] = np.nan
         # df['Min acceleration'] = np.nan
-        df['CPS'] = np.nan
-        df['Bot'] = np.zeros(len(df), dtype='int8')
+        df['Bot'] = np.nan
 
         for index, cell_value in enumerate(df[self.__coor_col]):
             try:
@@ -111,7 +217,10 @@ class ClassificationBots:
             unix_time = [int(coord.split(',')[2]) for coord in coord_list]
 
             # df.loc[index, 'Bot'] = self.get_bot_value(x_coords, y_coords)
-            df.loc[index, 'Session time'], df.loc[index, 'CPS'] = self.get_session_time(unix_time)
+            session_time = self.get_session_time(unix_time)
+            if session_time < 30:
+                continue
+            df.loc[index, 'Session time'] = session_time
 
             length_list = self.get_length_list(x_coords, y_coords, unix_time)
             speed_list = self.get_speed_list(x_coords, y_coords, unix_time)
@@ -128,12 +237,30 @@ class ClassificationBots:
             df.loc[index, 'Avg acceleration'] = np.mean(acceleration_list)
             df.loc[index, 'Std acceleration'] = np.std(acceleration_list)
 
-            # df.loc[index, 'Max speed'] = np.max(speed_list)
-            # df.loc[index, 'Max acceleration'] = np.max(acceleration_list)
-            # df.loc[index, 'Min acceleration'] = np.min(acceleration_list)
+            drp = self.get_duplicate_return_points(x_coords, y_coords)
 
-        bot_idx = df[df['CPS'] > 3].index
-        df.loc[bot_idx, 'Bot'] = 1
+            df.loc[index, 'No cross'] = self.get_no_cross(x_coords, y_coords)
+            max_len_line, num_line = self.get_length_straight_line(x_coords, y_coords)
+            df.loc[index, 'Straight line length'], df.loc[index, 'Straight line number'] = max_len_line, num_line
+            df.loc[index, 'Straight line frequency'] = num_line / df.loc[index, 'Кол-во координат']
+
+            bot_class_list = []
+            if df.loc[index, 'Avg length'] > 100:
+                bot_class_list.append('1')
+            if df.loc[index, 'Std length'] > 100:
+                bot_class_list.append('2')
+            if df.loc[index, 'Std speed'] < 250:
+                bot_class_list.append('3')
+            if df.loc[index, 'No cross'] == 1:
+                bot_class_list.append('4')
+
+            if len(bot_class_list) == 0:
+                bot_class_list.append('0')
+            bot_value = ';'.join(bot_class_list)
+            df.loc[index, 'Bot'] = bot_value
+
+            df.loc[index, 'Duplicate return points'] = drp
+
         return df
 
     def execute(self, df: DataFrame) -> DataFrame:
