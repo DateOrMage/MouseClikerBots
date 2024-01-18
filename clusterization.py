@@ -30,7 +30,7 @@ class Clusterization:
             # Average_Straight_line_number=NamedAgg(column='Straight line number', aggfunc='mean'),
             # Average_Straight_line_frequency=NamedAgg(column='Straight line frequency', aggfunc='mean'),
 
-            # Average_Duplicate_return_points=NamedAgg(column='Duplicate return points', aggfunc='mean'),
+            Average_Duplicate_return_points=NamedAgg(column='Duplicate return points', aggfunc='mean'),
 
             Average_Session_Time=NamedAgg(column='Session time', aggfunc='mean'),
             # Bot_frequency=NamedAgg(column='Bot', aggfunc='mode')
@@ -67,6 +67,11 @@ class Clusterization:
         kmeans = KMeans(n_clusters=self.__n_clusters, random_state=self.__random_seed, n_init='auto')
         cluster_labels = kmeans.fit_predict(scaled_data)
         clustering_df['User_cluster'] = cluster_labels
+        ###
+        cluster_labels = {k: v for k, v in zip(np.argsort(clustering_df['User_cluster'].value_counts()).index,
+                                               sorted(clustering_df['User_cluster'].unique()))}
+        clustering_df['User_cluster'].replace(cluster_labels, inplace=True)
+        ###
 
         return clustering_df, scaled_data
 
@@ -74,8 +79,8 @@ class Clusterization:
         original_data = df.copy()
         # print(original_data)
         # print(df)
-        df = df.drop(['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат', 'x_y_unix', 'Bot', 'No cross', 'Session time',
-                      'Duplicate return points'], axis=1)
+        df = df.drop(['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат', 'x_y_unix', 'Bot', 'No cross', 'Session time'
+                      ], axis=1) # 'Duplicate return points'
         print('cols for clustrization by session:', df.columns)
         # print('DF after drop cols\n', df)
         # df = np.where(np.abs(df) > 10000, 10000 * np.sign(df), df)
@@ -86,6 +91,11 @@ class Clusterization:
         cluster_labels = kmeans.fit_predict(df)
         del df
         original_data['Session_cluster'] = cluster_labels
+        ###
+        cluster_labels = {k: v for k, v in zip(np.argsort(original_data['Session_cluster'].value_counts()).index,
+                                               sorted(original_data['Session_cluster'].unique()))}
+        original_data['Session_cluster'].replace(cluster_labels, inplace=True)
+        ###
         print(cluster_labels)
         gc.collect()
 

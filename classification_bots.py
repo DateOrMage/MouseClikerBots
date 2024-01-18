@@ -67,7 +67,8 @@ class ClassificationBots:
     @staticmethod
     def get_duplicate_return_points(x_coords: list, y_coords: list) -> int:
         coords_str = [",".join([str(x), str(y)]) for x, y in zip(x_coords, y_coords)]
-        coords_dict = {}
+        # coords_dict = {}
+        n_duplicates = 0
         for i in range(1, len(coords_str)-1):
             if coords_str[i] == coords_str[i - 1]:
                 continue
@@ -77,7 +78,8 @@ class ClassificationBots:
                 x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
                 return_length = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
                 if return_length > 30:
-                    return 1
+                    n_duplicates += 1
+                    # return 1
 
         #     coords_dict[coords_str[i]] = coords_dict.get(coords_str[i], 0) + 1             
         # same_coords_sum = sum([i for i in coords_dict.values() if i != 1])
@@ -85,7 +87,7 @@ class ClassificationBots:
         # if same_coords_max == 1:
         #     same_coords_max = 0
 
-        return 0
+        return n_duplicates
 
     @staticmethod
     def get_no_cross(x_coords, y_coords):
