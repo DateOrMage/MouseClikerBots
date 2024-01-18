@@ -20,43 +20,22 @@ class Clusterization:
             # Average_Avg_speed=NamedAgg(column='Avg speed', aggfunc='mean'),
             Average_Std_speed=NamedAgg(column='Std speed', aggfunc='mean'),
 
-            # Average_Max_Acceleration=NamedAgg(column='Max acceleration', aggfunc='mean'),
-            # Average_Min_Acceleration=NamedAgg(column='Min acceleration', aggfunc='mean'),
-            # Average_Avg_Acceleration=NamedAgg(column='Avg acceleration', aggfunc='mean'),
-            # Average_Std_Acceleration=NamedAgg(column='Std acceleration', aggfunc='mean'),
-
             # Average_No_cross=NamedAgg(column='No cross', aggfunc='mean'),
-            Average_Straight_line_length=NamedAgg(column='Straight line length', aggfunc='mean'),
+            Average_Straight_length=NamedAgg(column='Straight length', aggfunc='mean'),
             # Average_Straight_line_number=NamedAgg(column='Straight line number', aggfunc='mean'),
             # Average_Straight_line_frequency=NamedAgg(column='Straight line frequency', aggfunc='mean'),
 
-            Average_Duplicate_return_points=NamedAgg(column='Duplicate return points', aggfunc='mean'),
+            Average_Duplicate_points=NamedAgg(column='Duplicate points', aggfunc='mean'),
 
             Average_Session_Time=NamedAgg(column='Session time', aggfunc='mean'),
+            Duplicated_session=NamedAgg(column='Avg length', aggfunc=lambda x: x.duplicated().sum())  # if x.duplicated().sum() == 0 else x.duplicated().sum()+1)
             # Bot_frequency=NamedAgg(column='Bot', aggfunc='mode')
         ).reset_index()
-        print('after agg', clustering_df)
-        # df['Session time'] = np.nan
-        # df['Avg length'] = np.nan
-        # df['Std length'] = np.nan
-        # df['Min speed'] = np.nan
-        # df['Max speed'] = np.nan
-        # df['Avg speed'] = np.nan
-        # df['Std speed'] = np.nan
-        # df['Min acceleration'] = np.nan
-        # df['Max acceleration'] = np.nan
-        # df['Avg acceleration'] = np.nan
-        # df['Std acceleration'] = np.nan
-        #
-        # df['No cross'] = np.nan
-        # df['Straight line length'] = np.nan
-        # df['Straight line number'] = np.nan
-        # df['Straight line frequency'] = np.nan
-        #
-        # df['Duplicate return points'] = np.nan
+        # print('after agg', clustering_df)
 
         # print('DF after session_cluster: \n', df)
         # print('Cluster_df: \n', clustering_df)
+        # clustering_df['Duplicated_session'] = clustering_df['Duplicated_session'] / clustering_df['Number_of_Sessions']
 
         scaled_data = clustering_df.drop(['ACCOUNT_ID', 'Number_of_Sessions', 'Average_Session_Time'], axis=1)  # 'Bot_frequency'
         print('cols for clustrization by users:', scaled_data.columns)
