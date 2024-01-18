@@ -108,10 +108,10 @@ class ClassificationBots:
     def get_line_length(line: list) -> float:
         return np.sqrt((line[0][0] - line[-1][0])**2 + (line[0][1] - line[-1][1])**2)
 
-    def get_length_straight_line(self, x_coords: list, y_coords: list) -> tuple:
+    def get_length_straight_line(self, x_coords: list, y_coords: list) -> float:
         current_straight_line = []
         max_straight_line_length = 0
-        n_straight_lines = 0
+        # n_straight_lines = 0
         i = 0
         while i < len(x_coords) - 2:
             # x1 != x2, y1 != y2
@@ -129,7 +129,7 @@ class ClassificationBots:
                         i += 1
                     else:
                         if len(current_straight_line) > 3:
-                            n_straight_lines += 1
+                            # n_straight_lines += 1
                             line_length = self.get_line_length(current_straight_line)
                             if max_straight_line_length < line_length:
                                 max_straight_line_length = line_length
@@ -151,7 +151,7 @@ class ClassificationBots:
                         i += 1
                     else:
                         if len(current_straight_line) > 3:
-                            n_straight_lines += 1
+                            # n_straight_lines += 1
                             line_length = self.get_line_length(current_straight_line)
                             if max_straight_line_length < line_length:
                                 max_straight_line_length = line_length
@@ -160,26 +160,26 @@ class ClassificationBots:
             else:
                 i += 1
 
-        return max_straight_line_length, n_straight_lines
+        return max_straight_line_length  # , n_straight_lines
 
     def data_analyze(self, df: DataFrame) -> DataFrame:
 
         df['Session time'] = np.nan
         df['Avg length'] = np.nan
         df['Std length'] = np.nan
-        df['Min speed'] = np.nan
-        df['Max speed'] = np.nan
-        df['Avg speed'] = np.nan
+        # df['Min speed'] = np.nan
+        # df['Max speed'] = np.nan
+        # df['Avg speed'] = np.nan
         df['Std speed'] = np.nan
-        df['Min acceleration'] = np.nan
-        df['Max acceleration'] = np.nan
-        df['Avg acceleration'] = np.nan
-        df['Std acceleration'] = np.nan
+        # df['Min acceleration'] = np.nan
+        # df['Max acceleration'] = np.nan
+        # df['Avg acceleration'] = np.nan
+        # df['Std acceleration'] = np.nan
 
         df['No cross'] = np.nan
         df['Straight line length'] = np.nan
-        df['Straight line number'] = np.nan
-        df['Straight line frequency'] = np.nan
+        # df['Straight line number'] = np.nan
+        # df['Straight line frequency'] = np.nan
 
         df['Duplicate return points'] = np.nan
         # df['Duplicate points max'] = np.nan
@@ -228,21 +228,22 @@ class ClassificationBots:
 
             df.loc[index, 'Avg length'] = np.mean(length_list)
             df.loc[index, 'Std length'] = np.std(length_list)
-            df.loc[index, 'Min speed'] = np.min(speed_list)
-            df.loc[index, 'Max speed'] = np.max(speed_list)
-            df.loc[index, 'Avg speed'] = np.mean(speed_list)
+            # df.loc[index, 'Min speed'] = np.min(speed_list)
+            # df.loc[index, 'Max speed'] = np.max(speed_list)
+            # df.loc[index, 'Avg speed'] = np.mean(speed_list)
             df.loc[index, 'Std speed'] = np.std(speed_list)
-            df.loc[index, 'Min acceleration'] = np.min(acceleration_list)
-            df.loc[index, 'Max acceleration'] = np.max(acceleration_list)
-            df.loc[index, 'Avg acceleration'] = np.mean(acceleration_list)
-            df.loc[index, 'Std acceleration'] = np.std(acceleration_list)
+            # df.loc[index, 'Min acceleration'] = np.min(acceleration_list)
+            # df.loc[index, 'Max acceleration'] = np.max(acceleration_list)
+            # df.loc[index, 'Avg acceleration'] = np.mean(acceleration_list)
+            # df.loc[index, 'Std acceleration'] = np.std(acceleration_list)
 
             drp = self.get_duplicate_return_points(x_coords, y_coords)
 
             df.loc[index, 'No cross'] = self.get_no_cross(x_coords, y_coords)
-            max_len_line, num_line = self.get_length_straight_line(x_coords, y_coords)
-            df.loc[index, 'Straight line length'], df.loc[index, 'Straight line number'] = max_len_line, num_line
-            df.loc[index, 'Straight line frequency'] = num_line / df.loc[index, 'Кол-во координат']
+            # max_len_line, num_line = self.get_length_straight_line(x_coords, y_coords)
+            # df.loc[index, 'Straight line length'], df.loc[index, 'Straight line number'] = max_len_line, num_line
+            # df.loc[index, 'Straight line frequency'] = num_line / df.loc[index, 'Кол-во координат']
+            df.loc[index, 'Straight line length'] = self.get_length_straight_line(x_coords, y_coords)
 
             bot_class_list = []
             if df.loc[index, 'Avg length'] > 100:
@@ -253,6 +254,8 @@ class ClassificationBots:
                 bot_class_list.append('3')
             if df.loc[index, 'No cross'] == 1:
                 bot_class_list.append('4')
+            if df.loc[index, 'Straight line length'] > 100:
+                bot_class_list.append('5')
 
             if len(bot_class_list) == 0:
                 bot_class_list.append('0')

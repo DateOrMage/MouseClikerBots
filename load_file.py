@@ -15,10 +15,11 @@ class LoadFile:
 
     def check_columns(self, df: DataFrame) -> DataFrame:
         try:
-            df = df[['ID', 'ACCOUNT_ID', 'Кол-во координат',
+            df = df[['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат',
                      'Координаты с отпечатком времени в unix формате (кол-во миллисекунд с 01.01.1970)']]
             df = df.rename(columns={'Координаты с отпечатком времени в unix формате (кол-во миллисекунд с 01.01.1970)':
                                     'x_y_unix'})
+            print(df)
         except KeyError:
             self.output_text = 'Error: Неверное название столбцов, см. руководство пользователя.'
             self.flag = False
@@ -53,14 +54,14 @@ if __name__ == '__main__':
     data, text, flag = lf.execute()
     print(data)
     import time
-    from classification_bots import ClassificationBots
-    start = time.time()
-    cb = ClassificationBots()
-    data = cb.execute(data)
-    stop = time.time()
-    print(f'Data analyze time is {round(stop-start)} sec.')
-    # data.to_excel("C:\\Users\\Пользователь\\Downloads\\pp_unix_mini.xlsx")
-    from clusterization import Clusterization
-    data = Clusterization().get_cluster_by_session(data)
-    print(data)
-    stat_data = Clusterization().get_cluster_by_user(data)
+    # from classification_bots import ClassificationBots
+    # start = time.time()
+    # cb = ClassificationBots()
+    # data = cb.execute(data)
+    # stop = time.time()
+    # print(f'Data analyze time is {round(stop-start)} sec.')
+    # # data.to_excel("C:\\Users\\Пользователь\\Downloads\\pp_unix_mini.xlsx")
+    # from clusterization import Clusterization
+    # data = Clusterization().get_cluster_by_session(data)
+    # print(data)
+    # stat_data = Clusterization().get_cluster_by_user(data)

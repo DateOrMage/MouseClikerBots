@@ -7,7 +7,7 @@ import gc
 
 
 class Clusterization:
-    __n_clusters: int = 5
+    __n_clusters: int = 6
     __random_seed: int = 42
 
     def get_cluster_by_user(self, df: DataFrame) -> tuple:
@@ -15,22 +15,22 @@ class Clusterization:
             Number_of_Sessions=NamedAgg(column='ID', aggfunc='count'),
             Average_Avg_length=NamedAgg(column='Avg length', aggfunc='mean'),
             Average_Std_length=NamedAgg(column='Std length', aggfunc='mean'),
-            Average_Min_speed=NamedAgg(column='Min speed', aggfunc='mean'),
-            Average_Max_speed=NamedAgg(column='Max speed', aggfunc='mean'),
-            Average_Avg_speed=NamedAgg(column='Avg speed', aggfunc='mean'),
+            # Average_Min_speed=NamedAgg(column='Min speed', aggfunc='mean'),
+            # Average_Max_speed=NamedAgg(column='Max speed', aggfunc='mean'),
+            # Average_Avg_speed=NamedAgg(column='Avg speed', aggfunc='mean'),
             Average_Std_speed=NamedAgg(column='Std speed', aggfunc='mean'),
 
-            Average_Max_Acceleration=NamedAgg(column='Max acceleration', aggfunc='mean'),
-            Average_Min_Acceleration=NamedAgg(column='Min acceleration', aggfunc='mean'),
-            Average_Avg_Acceleration=NamedAgg(column='Avg acceleration', aggfunc='mean'),
-            Average_Std_Acceleration=NamedAgg(column='Std acceleration', aggfunc='mean'),
+            # Average_Max_Acceleration=NamedAgg(column='Max acceleration', aggfunc='mean'),
+            # Average_Min_Acceleration=NamedAgg(column='Min acceleration', aggfunc='mean'),
+            # Average_Avg_Acceleration=NamedAgg(column='Avg acceleration', aggfunc='mean'),
+            # Average_Std_Acceleration=NamedAgg(column='Std acceleration', aggfunc='mean'),
 
-            Average_No_cross=NamedAgg(column='No cross', aggfunc='mean'),
+            # Average_No_cross=NamedAgg(column='No cross', aggfunc='mean'),
             Average_Straight_line_length=NamedAgg(column='Straight line length', aggfunc='mean'),
-            Average_Straight_line_number=NamedAgg(column='Straight line number', aggfunc='mean'),
-            Average_Straight_line_frequency=NamedAgg(column='Straight line frequency', aggfunc='mean'),
+            # Average_Straight_line_number=NamedAgg(column='Straight line number', aggfunc='mean'),
+            # Average_Straight_line_frequency=NamedAgg(column='Straight line frequency', aggfunc='mean'),
 
-            Average_Duplicate_return_points=NamedAgg(column='Duplicate return points', aggfunc='mean'),
+            # Average_Duplicate_return_points=NamedAgg(column='Duplicate return points', aggfunc='mean'),
 
             Average_Session_Time=NamedAgg(column='Session time', aggfunc='mean'),
             # Bot_frequency=NamedAgg(column='Bot', aggfunc='mode')
@@ -58,7 +58,7 @@ class Clusterization:
         # print('DF after session_cluster: \n', df)
         # print('Cluster_df: \n', clustering_df)
 
-        scaled_data = clustering_df.drop(['ACCOUNT_ID'], axis=1) # 'Bot_frequency'
+        scaled_data = clustering_df.drop(['ACCOUNT_ID', 'Number_of_Sessions', 'Average_Session_Time'], axis=1)  # 'Bot_frequency'
         print('cols for clustrization by users:', scaled_data.columns)
         # scaled_data = np.where(np.abs(scaled_data) > 10000, 10000 * np.sign(scaled_data), scaled_data)
         scaler = StandardScaler()
@@ -74,7 +74,8 @@ class Clusterization:
         original_data = df.copy()
         # print(original_data)
         # print(df)
-        df = df.drop(['ID', 'ACCOUNT_ID', 'x_y_unix', 'Bot'], axis=1)
+        df = df.drop(['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат', 'x_y_unix', 'Bot', 'No cross', 'Session time',
+                      'Duplicate return points'], axis=1)
         print('cols for clustrization by session:', df.columns)
         # print('DF after drop cols\n', df)
         # df = np.where(np.abs(df) > 10000, 10000 * np.sign(df), df)

@@ -216,8 +216,9 @@ class MouseClicker(QMainWindow):
         for i in range(n_clusters):
             self.ui.matplotlib_tsne_widget.canvas.axes.scatter(tsne_data[self.data_users['User_cluster'] == i, 0],
                                                                tsne_data[self.data_users['User_cluster'] == i, 1],
-                                                               #label={0: "Не бот (0)", 1: "Бот (1)",
-                                                               #       2: "Не определено (2)"}[i],
+                                                               label={0: "Не бот (0)", 1: "Бот (1)",
+                                                                      2: "Бот (2)", 3: "Бот (3)", 4: "Бот (4)",
+                                                                      5: "Бот (5)"}[i],
                                                                #s=5
                                                                )
         self.ui.matplotlib_tsne_widget.canvas.axes.legend()
