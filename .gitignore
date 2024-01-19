@@ -1,6 +1,7 @@
 # /config.json
 /venv
-# /dist/
+/dist/
+/build/
 *.pyc
 .DS_Store
 *.xlsx
