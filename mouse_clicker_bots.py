@@ -1,5 +1,6 @@
 import sys
 
+import numpy as np
 import pandas as pd
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 from PySide6.QtCore import Signal, Slot, QRunnable, QThreadPool, QObject
@@ -9,6 +10,8 @@ from ui_interface import Ui_MainWindow
 from pandas import DataFrame
 from numpy import ndarray
 from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 import traceback
 
 from load_file import LoadFile
@@ -345,18 +348,28 @@ class MouseClicker(QMainWindow):
     ###
     def plot_tsne_session(self):
         self.ui.matplotlib_tsne_session_widget.reset_widget()
-        self.ui.matplotlib_tsne_session_widget.canvas.axes.set_xlabel('t-SNE Dimension 1')
-        self.ui.matplotlib_tsne_session_widget.canvas.axes.set_ylabel('t-SNE Dimension 2')
-        self.ui.matplotlib_tsne_session_widget.canvas.axes.set_title(f't-SNE Visualization with Clusters')
+        self.ui.matplotlib_tsne_session_widget.canvas.axes.set_xlabel('LDA Dimension 1')
+        self.ui.matplotlib_tsne_session_widget.canvas.axes.set_ylabel('LDA Dimension 2')
+        self.ui.matplotlib_tsne_session_widget.canvas.axes.set_title(f'LDA Visualization with Clusters')
 
-        tsne = TSNE(n_components=2, random_state=42)
-        tsne_data = tsne.fit_transform(self.tsne_data_session)
+        # tsne = TSNE(n_components=2, random_state=42)
+        # tsne_data = tsne.fit_transform(self.tsne_data_session)
+
+        lower_percentile = 0.1
+        upper_percentile = 99.9
+        lower_bound = np.percentile(self.tsne_data_session, lower_percentile, axis=0)
+        upper_bound = np.percentile(self.tsne_data_session, upper_percentile, axis=0)
+        outlier_mask = np.any((self.tsne_data_session < lower_bound) | (self.tsne_data_session > upper_bound), axis=1)
+        tsne_data = self.tsne_data_session[~outlier_mask]
+
+        tsne = LinearDiscriminantAnalysis(n_components=2)
+        tsne_data = tsne.fit_transform(tsne_data, self.data['Session_cluster'][~outlier_mask])
 
         n_clusters = self.data['Session_cluster'].nunique()
 
         for i in range(n_clusters):
-            self.ui.matplotlib_tsne_session_widget.canvas.axes.scatter(tsne_data[self.data['Session_cluster'] == i, 0],
-                                                                       tsne_data[self.data['Session_cluster'] == i, 1],
+            self.ui.matplotlib_tsne_session_widget.canvas.axes.scatter(tsne_data[self.data['Session_cluster'][~outlier_mask] == i, 0],
+                                                                       tsne_data[self.data['Session_cluster'][~outlier_mask] == i, 1],
                                                                        label={0: "Не бот (0)", 1: "Бот (1)",
                                                                               2: "Бот (2)", 3: "Бот (3)", 4: "Бот (4)",
                                                                               5: "Бот (5)"}[i],

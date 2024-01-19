@@ -19,7 +19,6 @@ class LoadFile:
                      'Координаты с отпечатком времени в unix формате (кол-во миллисекунд с 01.01.1970)']]
             df = df.rename(columns={'Координаты с отпечатком времени в unix формате (кол-во миллисекунд с 01.01.1970)':
                                     'x_y_unix'})
-            print(df)
         except KeyError:
             self.output_text = 'Error: Неверное название столбцов, см. руководство пользователя.'
             self.flag = False
@@ -52,7 +51,6 @@ class LoadFile:
 if __name__ == '__main__':
     lf = LoadFile("C:\\Users\\Пользователь\\Downloads\\Координаты движения мыши Unix mini.xlsx")
     data, text, flag = lf.execute()
-    print(data)
     import time
     # from classification_bots import ClassificationBots
     # start = time.time()
