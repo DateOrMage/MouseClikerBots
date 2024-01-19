@@ -1,18 +1,14 @@
 import sys
 
 import pandas as pd
-from PySide6 import QtWidgets
-from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
-from PySide6.QtSql import QSqlTableModel
-from PySide6.QtCore import Signal, Slot, QRunnable, QThreadPool, QObject, QByteArray, QThread
+from PySide6.QtCore import Signal, Slot, QRunnable, QThreadPool, QObject
 
-from ui_interface import Ui_MainWindow, MatplotlibWidget
+from ui_interface import Ui_MainWindow
 
 from pandas import DataFrame
 from numpy import ndarray
 from sklearn.manifold import TSNE
-from sklearn.preprocessing import StandardScaler
 import traceback
 
 from load_file import LoadFile
@@ -68,6 +64,7 @@ class MouseClicker(QMainWindow):
         self.ui.but_plot_tsne_sessions.clicked.connect(self.start_thread_plot_tsne_session)
 
         self.data: DataFrame | None = None
+        self.tsne_data_session: DataFrame | None = None
         self.data_users: DataFrame | None = None
         self.tsne_data: ndarray | None = None
 
@@ -108,7 +105,8 @@ class MouseClicker(QMainWindow):
             self.threadpool.start(thread_load)
 
     def result_analyze(self, res):
-        self.data = res
+        self.data = res[0]
+        self.tsne_data_session = res[1]
         self.ui.label_load.setText("Данные успешно проанализированы, можно строить графики траекторий или"
                                    " кластеризовать данные.")
         self.ui.but_analyze.setEnabled(False)
@@ -116,8 +114,8 @@ class MouseClicker(QMainWindow):
         self.ui.label_table_init.setVisible(True)
         self.ui.but_plot_trajectories.setVisible(True)
         self.ui.but_save_tab_init.setVisible(True)
-        # self.ui.but_add_cluster_session.setVisible(True)
         self.ui.but_plot_tsne_sessions.setVisible(True)
+        self.ui.but_plot_tsne_sessions.setEnabled(True)
 
         self.ui.tableWidget_init.set_dataframe(self.data.drop(['x_y_unix'], axis=1).reset_index())
 
@@ -175,9 +173,9 @@ class MouseClicker(QMainWindow):
         self.threadpool.start(thread_plot_track)
 
     def result_clusterize(self, res):
-        self.data = res[0]
-        self.data_users = res[1]
-        self.tsne_data = res[2]
+        # self.data = res[0]
+        self.data_users = res[0]
+        self.tsne_data = res[1]
         self.ui.label_load.setText("Кластеризация прошла успешно, можно строить графики траекторий, кластеризации или"
                                    " рассмотреть сессии пользователя.")
         self.ui.but_clusterize.setEnabled(False)
@@ -229,6 +227,7 @@ class MouseClicker(QMainWindow):
                                                                #s=5
                                                                )
         self.ui.matplotlib_tsne_widget.canvas.axes.legend()
+        del tsne_data
 
     def result_plot_tsne(self):
         self.ui.matplotlib_tsne_widget.canvas.draw()
@@ -310,7 +309,7 @@ class MouseClicker(QMainWindow):
     def sessions_by_users(self):
 
         self.selected_indices_users = self.ui.tableWidget_users.get_values_of_selected_items()
-        print(self.selected_indices_users)
+        # print(self.selected_indices_users)
         df_users_list = []
         for user in self.selected_indices_users:
             df_users_list.append(self.data[self.data['ACCOUNT_ID'] == user])
@@ -343,7 +342,6 @@ class MouseClicker(QMainWindow):
 
         self.threadpool.start(thread_plot_track_end)
 
-
     ###
     def plot_tsne_session(self):
         self.ui.matplotlib_tsne_session_widget.reset_widget()
@@ -352,25 +350,20 @@ class MouseClicker(QMainWindow):
         self.ui.matplotlib_tsne_session_widget.canvas.axes.set_title(f't-SNE Visualization with Clusters')
 
         tsne = TSNE(n_components=2, random_state=42)
-        df_tsne = self.data.copy()
-        df_tsne = df_tsne.drop(['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат', 'x_y_unix', 'Bot', 'No cross',
-                                'Session_cluster', 'Session time'], axis=1)
-        print('TSNE session features')
-        print(df_tsne.columns)
-        scaler = StandardScaler()
-        df_tsne = scaler.fit_transform(df_tsne)
+        tsne_data = tsne.fit_transform(self.tsne_data_session)
+
         n_clusters = self.data['Session_cluster'].nunique()
 
         for i in range(n_clusters):
-            self.ui.matplotlib_tsne_session_widget.canvas.axes.scatter(df_tsne[self.data['Session_cluster'] == i, 0],
-                                                               df_tsne[self.data['Session_cluster'] == i, 1],
-                                                               label={0: "Не бот (0)", 1: "Бот (1)",
-                                                                      2: "Бот (2)", 3: "Бот (3)", 4: "Бот (4)",
-                                                                      5: "Бот (5)"}[i],
-                                                               s=10
-                                                               )
+            self.ui.matplotlib_tsne_session_widget.canvas.axes.scatter(tsne_data[self.data['Session_cluster'] == i, 0],
+                                                                       tsne_data[self.data['Session_cluster'] == i, 1],
+                                                                       label={0: "Не бот (0)", 1: "Бот (1)",
+                                                                              2: "Бот (2)", 3: "Бот (3)", 4: "Бот (4)",
+                                                                              5: "Бот (5)"}[i],
+                                                                       # s=10
+                                                                       )
         self.ui.matplotlib_tsne_session_widget.canvas.axes.legend()
-        del df_tsne
+        del tsne_data
 
     def result_plot_tsne_session(self):
         self.ui.matplotlib_tsne_session_widget.canvas.draw()

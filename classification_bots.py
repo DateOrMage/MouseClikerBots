@@ -1,12 +1,15 @@
-import time
-
 from pandas import DataFrame
 import numpy as np
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import gc
 
 
 class ClassificationBots:
     __coor_col: str = 'x_y_unix'
     __straight_line_threshold: int = 100
+    __n_clusters: int = 6
+    __random_seed: int = 42
 
     def get_bot_value(self, x_coords: list, y_coords: list) -> int:
         straight_line_detected = False
@@ -161,23 +164,14 @@ class ClassificationBots:
         df['Session time'] = np.nan
         df['Avg length'] = np.nan
         df['Std length'] = np.nan
-        # df['Min speed'] = np.nan
-        # df['Max speed'] = np.nan
-        # df['Avg speed'] = np.nan
+
         df['Std speed'] = np.nan
-        # df['Min acceleration'] = np.nan
-        # df['Max acceleration'] = np.nan
-        # df['Avg acceleration'] = np.nan
-        # df['Std acceleration'] = np.nan
 
         df['No cross'] = np.nan
         df['Straight length'] = np.nan
-        # df['Straight line number'] = np.nan
-        # df['Straight line frequency'] = np.nan
 
         df['Duplicate points'] = np.nan
-        # df['Duplicate points max'] = np.nan
-        # df['Min acceleration'] = np.nan
+
         df['Bot'] = ''
 
         for index, cell_value in enumerate(df[self.__coor_col]):
@@ -248,16 +242,36 @@ class ClassificationBots:
             bot_value = ';'.join(bot_class_list)
             df.loc[index, 'Bot'] = bot_value
 
-
-
         return df
 
-    def execute(self, df: DataFrame) -> DataFrame:
+    def get_cluster_by_session(self, data: DataFrame) -> tuple:
+        original_data = data.copy()
+        data = data.drop(['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат', 'x_y_unix', 'Bot', 'No cross', 'Session time'
+                      ], axis=1)  # 'Duplicate return points'
+
+        scaler = StandardScaler()
+        data = scaler.fit_transform(data)
+        kmeans = KMeans(n_clusters=self.__n_clusters, random_state=self.__random_seed, n_init='auto')
+        cluster_labels = kmeans.fit_predict(data)
+        # del df
+        original_data['Session_cluster'] = cluster_labels
+        ###
+        cluster_labels = {k: v for k, v in zip(np.argsort(original_data['Session_cluster'].value_counts()).index,
+                                               sorted(original_data['Session_cluster'].unique()))}
+        original_data['Session_cluster'].replace(cluster_labels, inplace=True)
+        ###
+        gc.collect()
+
+        return original_data, data
+
+    def execute(self, df: DataFrame) -> tuple:
         df = self.data_analyze(df)
         if df.isnull().sum().sum() > 0:
             df = df.dropna().reset_index(drop=True)
 
-        return df
+        df, tsne_session_df = self.get_cluster_by_session(df)
+
+        return df, tsne_session_df
 
 
 if __name__ == '__main__':

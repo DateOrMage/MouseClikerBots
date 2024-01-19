@@ -3,7 +3,6 @@ from pandas import DataFrame, NamedAgg
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
-import gc
 
 
 class Clusterization:
@@ -38,7 +37,7 @@ class Clusterization:
         # clustering_df['Duplicated_session'] = clustering_df['Duplicated_session'] / clustering_df['Number_of_Sessions']
 
         scaled_data = clustering_df.drop(['ACCOUNT_ID', 'Number_of_Sessions', 'Average_Session_Time'], axis=1)  # 'Bot_frequency'
-        print('cols for clustrization by users:', scaled_data.columns)
+        # print('cols for clustrization by users:', scaled_data.columns)
         # scaled_data = np.where(np.abs(scaled_data) > 10000, 10000 * np.sign(scaled_data), scaled_data)
         scaler = StandardScaler()
         scaled_data = scaler.fit_transform(scaled_data)
@@ -54,36 +53,30 @@ class Clusterization:
 
         return clustering_df, scaled_data
 
-    def get_cluster_by_session(self, df: DataFrame) -> DataFrame:
-        original_data = df.copy()
-        # print(original_data)
-        # print(df)
-        df = df.drop(['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат', 'x_y_unix', 'Bot', 'No cross', 'Session time'
-                      ], axis=1) # 'Duplicate return points'
-        print('cols for clustrization by session:', df.columns)
-        # print('DF after drop cols\n', df)
-        # df = np.where(np.abs(df) > 10000, 10000 * np.sign(df), df)
-        scaler = StandardScaler()
-        df = scaler.fit_transform(df)
-        # print('DF after scaler\n', df)
-        kmeans = KMeans(n_clusters=self.__n_clusters, random_state=self.__random_seed, n_init='auto')
-        cluster_labels = kmeans.fit_predict(df)
-        del df
-        original_data['Session_cluster'] = cluster_labels
-        ###
-        cluster_labels = {k: v for k, v in zip(np.argsort(original_data['Session_cluster'].value_counts()).index,
-                                               sorted(original_data['Session_cluster'].unique()))}
-        original_data['Session_cluster'].replace(cluster_labels, inplace=True)
-        ###
-        print(cluster_labels)
-        gc.collect()
-
-        return original_data
+    # def get_cluster_by_session(self, df: DataFrame) -> DataFrame:
+    #     original_data = df.copy()
+    #     df = df.drop(['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат', 'x_y_unix', 'Bot', 'No cross', 'Session time'
+    #                   ], axis=1)  # 'Duplicate return points'
+    #
+    #     scaler = StandardScaler()
+    #     df = scaler.fit_transform(df)
+    #     kmeans = KMeans(n_clusters=self.__n_clusters, random_state=self.__random_seed, n_init='auto')
+    #     cluster_labels = kmeans.fit_predict(df)
+    #     del df
+    #     original_data['Session_cluster'] = cluster_labels
+    #     ###
+    #     cluster_labels = {k: v for k, v in zip(np.argsort(original_data['Session_cluster'].value_counts()).index,
+    #                                            sorted(original_data['Session_cluster'].unique()))}
+    #     original_data['Session_cluster'].replace(cluster_labels, inplace=True)
+    #     ###
+    #     gc.collect()
+    #
+    #     return original_data
 
     def execute(self, df: DataFrame) -> tuple:
-        original_data = self.get_cluster_by_session(df)
+        # original_data = self.get_cluster_by_session(df)
         clustering_df, scaled_data = self.get_cluster_by_user(df)
-        return original_data, clustering_df, scaled_data
+        return clustering_df, scaled_data  # original_data,
 
 
 if __name__ == '__main__':

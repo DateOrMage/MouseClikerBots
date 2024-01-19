@@ -1,18 +1,10 @@
 import matplotlib.pyplot as plt
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-                            QMetaObject, QObject, QPoint, QRect,
-                            QSize, QTime, QUrl, Qt, QByteArray)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QHeaderView, QLabel,
-    QMainWindow, QMenuBar, QProgressBar, QPushButton, QSizeGrip,
-    QSizePolicy, QStatusBar, QTabWidget, QTableWidget,
-    QTableWidgetItem, QVBoxLayout, QWidget)
+from PySide6.QtCore import QCoreApplication, QMetaObject, QRect, Qt
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTabWidget
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenuBar, QProgressBar, QPushButton, QStatusBar
+
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QTabWidget
 import matplotlib
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -61,10 +53,6 @@ class Ui_MainWindow(object):
         MainWindow.resize(1360, 765) # 1200, 675
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
-
-        # icon = QIcon()
-        # icon.addFile(u"C:\\Users\\Пользователь\\Downloads\\free_icon_1.png", QSize(), QIcon.Normal)
-        # MainWindow.setWindowIcon(icon)
 
         # central widget layout
         self.verticalLayout_central = QVBoxLayout(self.centralwidget)
