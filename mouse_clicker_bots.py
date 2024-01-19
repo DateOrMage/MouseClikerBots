@@ -10,7 +10,6 @@ from ui_interface import Ui_MainWindow
 from pandas import DataFrame
 from numpy import ndarray
 from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 import traceback
 
@@ -75,10 +74,6 @@ class MouseClicker(QMainWindow):
         self.ui.label_load.setText(traceback_info)
         self.ui.tabWidget.setCurrentIndex(0)
 
-    # def set_init_ui_settings(self):
-    #     pm_icon = QPixmap()
-    #     pm_icon.loadFromData(QByteArray(ICON_BYTES_STR))
-    #     self.setWindowIcon(QIcon(pm_icon))
 
     def result_load(self, res):
         self.data = res[0]  # data
