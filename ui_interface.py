@@ -141,8 +141,28 @@ class Ui_MainWindow(object):
 
         self.but_plot_trajectories = QPushButton()
         self.but_plot_trajectories.setObjectName(u"but_plot_trajectories")
+        self.but_plot_trajectories.setText("Построить графки траекторий")
         self.but_plot_trajectories.setVisible(False)
         self.verticalLayout_tab_init.addWidget(self.but_plot_trajectories)
+
+        # self.horizontalLayout_tab_init = QHBoxLayout()
+        # self.but_add_cluster_session = QPushButton()
+        # self.but_add_cluster_session.setObjectName(u"but_add_cluster_session")
+        # self.but_add_cluster_session.setText("Добавить к таблице данные о кластеризации")
+        # self.but_add_cluster_session.setVisible(False)
+        # self.but_add_cluster_session.setEnabled(False)
+
+        self.but_plot_tsne_sessions = QPushButton()
+        self.but_plot_tsne_sessions.setObjectName(u"but_plot_tsne_sessions")
+        self.but_plot_tsne_sessions.setText("Построить график кластеризации по сессиям")
+        self.but_plot_tsne_sessions.setVisible(False)
+        self.but_plot_tsne_sessions.setEnabled(False)
+
+        # self.horizontalLayout_tab_init.addWidget(self.but_add_cluster_session)
+        # self.horizontalLayout_tab_init.addWidget(self.but_plot_tsne_sessions)
+        # self.verticalLayout_tab_init.addLayout(self.horizontalLayout_tab_init)
+
+        self.verticalLayout_tab_init.addWidget(self.but_plot_tsne_sessions)
 
         self.but_save_tab_init = QPushButton()
         self.but_save_tab_init.setObjectName(u"but_plot_trajectories")
@@ -203,9 +223,17 @@ class Ui_MainWindow(object):
         self.tab_plot_tsne = QWidget()
         self.verticalLayout_tab_plot_tsne = QVBoxLayout()
         self.tab_plot_tsne.setLayout(self.verticalLayout_tab_plot_tsne)
-        self.tabWidget.addTab(self.tab_plot_tsne, "График кластеризации")
+        self.tabWidget.addTab(self.tab_plot_tsne, "График кластеризации по пользователям")
         self.matplotlib_tsne_widget = MatplotlibWidget(figure=None)
         self.verticalLayout_tab_plot_tsne.addWidget(self.matplotlib_tsne_widget)
+
+        # plot clusterization
+        self.tab_plot_tsne_sessions = QWidget()
+        self.verticalLayout_tab_plot_tsne_sessions = QVBoxLayout()
+        self.tab_plot_tsne_sessions.setLayout(self.verticalLayout_tab_plot_tsne_sessions)
+        self.tabWidget.addTab(self.tab_plot_tsne_sessions, "График кластеризации по сессиям")
+        self.matplotlib_tsne_session_widget = MatplotlibWidget(figure=None)
+        self.verticalLayout_tab_plot_tsne_sessions.addWidget(self.matplotlib_tsne_session_widget)
 
         # tab table sessions
         self.tab_table_session = QWidget()

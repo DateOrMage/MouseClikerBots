@@ -12,6 +12,7 @@ from ui_interface import Ui_MainWindow, MatplotlibWidget
 from pandas import DataFrame
 from numpy import ndarray
 from sklearn.manifold import TSNE
+from sklearn.preprocessing import StandardScaler
 import traceback
 
 from load_file import LoadFile
@@ -64,6 +65,7 @@ class MouseClicker(QMainWindow):
         self.ui.but_save_tab_users.clicked.connect(self.start_thread_save_users_df)
         self.ui.but_filtred_users.clicked.connect(self.start_thread_sessions_by_users)
         self.ui.but_plot_trajectories_end.clicked.connect(self.start_thread_plot_track_end)
+        self.ui.but_plot_tsne_sessions.clicked.connect(self.start_thread_plot_tsne_session)
 
         self.data: DataFrame | None = None
         self.data_users: DataFrame | None = None
@@ -114,6 +116,8 @@ class MouseClicker(QMainWindow):
         self.ui.label_table_init.setVisible(True)
         self.ui.but_plot_trajectories.setVisible(True)
         self.ui.but_save_tab_init.setVisible(True)
+        # self.ui.but_add_cluster_session.setVisible(True)
+        self.ui.but_plot_tsne_sessions.setVisible(True)
 
         self.ui.tableWidget_init.set_dataframe(self.data.drop(['x_y_unix'], axis=1).reset_index())
 
@@ -181,8 +185,11 @@ class MouseClicker(QMainWindow):
         self.ui.but_plot_tsne.setVisible(True)
         self.ui.but_filtred_users.setVisible(True)
         self.ui.but_save_tab_users.setVisible(True)
+        # self.ui.but_add_cluster_session.setEnabled(True)
+        self.ui.but_plot_tsne_sessions.setEnabled(True)
 
         self.ui.tableWidget_users.set_dataframe(self.data_users.reset_index())
+        # self.ui.tableWidget_init.df['cluster'] = self.data['Session_cluster']
 
         self.ui.tabWidget.setCurrentIndex(3)
 
@@ -315,7 +322,7 @@ class MouseClicker(QMainWindow):
         self.ui.label_sessions.setVisible(True)
         self.ui.but_plot_trajectories_end.setVisible(True)
         self.ui.but_plot_trajectories_end.setEnabled(True)
-        self.ui.tabWidget.setCurrentIndex(5)
+        self.ui.tabWidget.setCurrentIndex(6)
 
     def finished_sessions_by_users(self):
         pass
@@ -335,6 +342,56 @@ class MouseClicker(QMainWindow):
         thread_plot_track_end.signals.finished.connect(self.finished_plot_track)
 
         self.threadpool.start(thread_plot_track_end)
+
+
+    ###
+    def plot_tsne_session(self):
+        self.ui.matplotlib_tsne_session_widget.reset_widget()
+        self.ui.matplotlib_tsne_session_widget.canvas.axes.set_xlabel('t-SNE Dimension 1')
+        self.ui.matplotlib_tsne_session_widget.canvas.axes.set_ylabel('t-SNE Dimension 2')
+        self.ui.matplotlib_tsne_session_widget.canvas.axes.set_title(f't-SNE Visualization with Clusters')
+
+        tsne = TSNE(n_components=2, random_state=42)
+        df_tsne = self.data.copy()
+        df_tsne = df_tsne.drop(['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат', 'x_y_unix', 'Bot', 'No cross',
+                                'Session_cluster', 'Session time'], axis=1)
+        print('TSNE session features')
+        print(df_tsne.columns)
+        scaler = StandardScaler()
+        df_tsne = scaler.fit_transform(df_tsne)
+        n_clusters = self.data['Session_cluster'].nunique()
+
+        for i in range(n_clusters):
+            self.ui.matplotlib_tsne_session_widget.canvas.axes.scatter(df_tsne[self.data['Session_cluster'] == i, 0],
+                                                               df_tsne[self.data['Session_cluster'] == i, 1],
+                                                               label={0: "Не бот (0)", 1: "Бот (1)",
+                                                                      2: "Бот (2)", 3: "Бот (3)", 4: "Бот (4)",
+                                                                      5: "Бот (5)"}[i],
+                                                               s=10
+                                                               )
+        self.ui.matplotlib_tsne_session_widget.canvas.axes.legend()
+        del df_tsne
+
+    def result_plot_tsne_session(self):
+        self.ui.matplotlib_tsne_session_widget.canvas.draw()
+        self.ui.tabWidget.setCurrentIndex(5)
+
+    def finished_plot_tsne_session(self):
+        self.ui.progress_analyze.setMaximum(1)
+        self.ui.progress_analyze.setValue(1)
+
+    def start_thread_plot_tsne_session(self):
+        self.ui.tabWidget.setCurrentIndex(0)
+        self.ui.progress_analyze.setMaximum(0)
+        self.ui.progress_analyze.setValue(-1)
+
+        thread_plot_tsne_session = Worker(self.plot_tsne_session)
+        thread_plot_tsne_session.signals.result.connect(self.result_plot_tsne_session)
+        thread_plot_tsne_session.signals.error.connect(self.error_perform)
+        thread_plot_tsne_session.signals.finished.connect(self.finished_plot_tsne_session)
+
+        self.threadpool.start(thread_plot_tsne_session)
+    ###
 
 
 if __name__ == "__main__":
