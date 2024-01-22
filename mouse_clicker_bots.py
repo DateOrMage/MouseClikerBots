@@ -157,8 +157,6 @@ class MouseClicker(QMainWindow):
         self.ui.matplotlib_traj_widget.canvas.axes.legend()
 
     def result_plot_track(self):
-        print(self.ui.tableWidget_init.get_values_of_selected_items())
-        print(self.ui.tableWidget_sessions.get_values_of_selected_items())
         if len(self.selected_indices_track) > 0:
             self.ui.label_table_init.setStyleSheet("color: black; background-color: white")
             self.ui.label_table_init.setText("Таблица исходных данных")
@@ -320,9 +318,7 @@ class MouseClicker(QMainWindow):
 
     # session by users
     def sessions_by_users(self):
-
         self.selected_indices_users = self.ui.tableWidget_users.get_values_of_selected_items()
-        # print(self.selected_indices_users)
         df_users_list = []
         for user in self.selected_indices_users:
             df_users_list.append(self.data[self.data['ACCOUNT_ID'] == user])
@@ -333,7 +329,6 @@ class MouseClicker(QMainWindow):
         # self.ui.tableWidget_sessions.set_dataframe(df_session_by_users.drop(['x_y_unix'], axis=1).reset_index())
 
     def result_sessions_by_users(self):
-        # print(self.df_session_by_users)
         if len(self.df_session_by_users) > 0:
             self.ui.tableWidget_sessions.set_dataframe(self.df_session_by_users.drop(['x_y_unix'], axis=1).reset_index())
             self.ui.label_sessions.setVisible(True)
@@ -343,7 +338,6 @@ class MouseClicker(QMainWindow):
         else:
             self.ui.label_user.setStyleSheet("color: red; background-color: yellow")
             self.ui.label_user.setText("Не выбраны пользователи для отображения сессий")
-
 
     def finished_sessions_by_users(self):
         pass
