@@ -164,10 +164,23 @@ class STableWidet(QWidget):
         for row in range(self.table_widget.rowCount()):
             hide_row = False
             for col, line_edit in enumerate(self.filter_line_edits):
-                text = line_edit.text().lower()
-                note = self.table_widget.item(row, col)
 
-                if text and text not in note.text().lower():
+                text = line_edit.text().lower()
+                value = self.table_widget.item(row, col).text()
+                try:
+                    text = text.replace(",", ".")
+                    chars_before_dot = value.find('.')
+                    if chars_before_dot == -1:
+                        chars_before_dot = 6
+                    value = float(value)
+                    num_of_chars = 6 - chars_before_dot
+                    format_string = "{:." + str(num_of_chars) + "f}"
+                    value = format_string.format(value)
+                    value = str(float(value))
+                except:
+                    value = value
+
+                if text and text not in value.lower():
                     hide_row = True
                     break
             if hide_row is False:
@@ -296,7 +309,7 @@ if __name__ == "__main__":
 
     tab = QTabWidget()
     tab.resize(950, 500)
-    df = pd.read_excel('Координаты движения мыши Unix mini.xlsx', index_col=None)
+    df = pd.read_excel('/Users/danielageev/Work/AI BMSTU/other/НОТАРИУС/analyzed_data.xlsx', index_col=None)
     # df = pd.read_excel('200тыс_записей_20231115_Выгрузка_координат_с_временем_для_анализа.xlsx')
     df_users = df.groupby('ACCOUNT_ID').sum().reset_index()
     tab.addTab(
@@ -308,7 +321,7 @@ if __name__ == "__main__":
         STableWidet(df_users,
                     checkbox_list=['ACCOUNT_ID'],
                     rows_per_page=500,
-                    filter_only_if_return_pressed=False),
+                    filter_only_if_return_pressed=True),
         "таблица пользователи"
     )
 
