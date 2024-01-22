@@ -167,6 +167,9 @@ class STableWidet(QWidget):
 
                 text = line_edit.text().lower()
                 value = self.table_widget.item(row, col).text()
+                if text:
+                    if type(value) is not str:
+                        print(type(value))
                 try:
                     text = text.replace(",", ".")
                     chars_before_dot = value.find('.')
@@ -178,7 +181,7 @@ class STableWidet(QWidget):
                     value = format_string.format(value)
                     value = str(float(value))
                 except:
-                    value = value
+                    pass
 
                 if text and text not in value.lower():
                     hide_row = True

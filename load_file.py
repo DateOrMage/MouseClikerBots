@@ -15,10 +15,11 @@ class LoadFile:
 
     def check_columns(self, df: DataFrame) -> DataFrame:
         try:
-            df = df[['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат',
-                     'Координаты с отпечатком времени в unix формате (кол-во миллисекунд с 01.01.1970)']]
-            df = df.rename(columns={'Координаты с отпечатком времени в unix формате (кол-во миллисекунд с 01.01.1970)':
-                                    'x_y_unix'})
+            for col_name in df.columns:
+                if col_name.startswith('Координаты с отпечатком времени в unix'):
+                    df = df.rename(columns={col_name: 'x_y_unix'})
+                    break
+            df = df[['ID', 'ACCOUNT_ID', 'CREATED', 'Кол-во координат', 'x_y_unix']]
         except KeyError:
             self.output_text = 'Error: Неверное название столбцов, см. руководство пользователя.'
             self.flag = False

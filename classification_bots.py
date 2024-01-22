@@ -186,7 +186,7 @@ class ClassificationBots:
             if len(coord_list[-1].split(',')) < 3:
                 coord_list = coord_list[:-1]
 
-            if len(coord_list[-1].split(',')[-1]) < 12:
+            if len(coord_list[-1].split(',')[-1]) < 13:
                 coord_list = coord_list[:-1]
 
             if len(coord_list) < 3:
