@@ -146,6 +146,7 @@ class MouseClicker(QMainWindow):
         else:
             selected_indices_track = []
         selected_indices_track = [int(id_session) for id_session in selected_indices_track]
+        self.selected_indices_track = selected_indices_track
         self.ui.matplotlib_traj_widget.canvas.axes.set_xlabel('X Coordinate')
         self.ui.matplotlib_traj_widget.canvas.axes.set_ylabel('Y Coordinate')
         self.ui.matplotlib_traj_widget.canvas.axes.set_title(f'Bot Trajectory')
@@ -156,8 +157,22 @@ class MouseClicker(QMainWindow):
         self.ui.matplotlib_traj_widget.canvas.axes.legend()
 
     def result_plot_track(self):
-        self.ui.matplotlib_traj_widget.canvas.draw()
-        self.ui.tabWidget.setCurrentIndex(2)
+        print(self.ui.tableWidget_init.get_values_of_selected_items())
+        print(self.ui.tableWidget_sessions.get_values_of_selected_items())
+        if len(self.selected_indices_track) > 0:
+            self.ui.label_table_init.setStyleSheet("color: black; background-color: white")
+            self.ui.label_table_init.setText("Таблица исходных данных")
+            self.ui.label_sessions.setStyleSheet("color: black; background-color: white")
+            self.ui.label_sessions.setText("Таблица с кластеризацией по пользователям")
+            self.ui.matplotlib_traj_widget.canvas.draw()
+            self.ui.tabWidget.setCurrentIndex(2)
+        else:
+            if self.ui.tabWidget.currentIndex() == 1:
+                self.ui.label_table_init.setStyleSheet("color: red; background-color: yellow")
+                self.ui.label_table_init.setText("Не выбраны пользователи для отображения графиков траекторий")
+            else:
+                self.ui.label_sessions.setStyleSheet("color: red; background-color: yellow")
+                self.ui.label_sessions.setText("Не выбраны пользователи для отображения графиков траекторий")
 
     def finished_plot_track(self):
         pass
@@ -311,15 +326,24 @@ class MouseClicker(QMainWindow):
         df_users_list = []
         for user in self.selected_indices_users:
             df_users_list.append(self.data[self.data['ACCOUNT_ID'] == user])
-        self.df_session_by_users = pd.concat(df_users_list, axis=0)
+        try:
+            self.df_session_by_users = pd.concat(df_users_list, axis=0)
+        except ValueError:
+            self.df_session_by_users = pd.DataFrame()
         # self.ui.tableWidget_sessions.set_dataframe(df_session_by_users.drop(['x_y_unix'], axis=1).reset_index())
 
     def result_sessions_by_users(self):
-        self.ui.tableWidget_sessions.set_dataframe(self.df_session_by_users.drop(['x_y_unix'], axis=1).reset_index())
-        self.ui.label_sessions.setVisible(True)
-        self.ui.but_plot_trajectories_end.setVisible(True)
-        self.ui.but_plot_trajectories_end.setEnabled(True)
-        self.ui.tabWidget.setCurrentIndex(6)
+        # print(self.df_session_by_users)
+        if len(self.df_session_by_users) > 0:
+            self.ui.tableWidget_sessions.set_dataframe(self.df_session_by_users.drop(['x_y_unix'], axis=1).reset_index())
+            self.ui.label_sessions.setVisible(True)
+            self.ui.but_plot_trajectories_end.setVisible(True)
+            self.ui.but_plot_trajectories_end.setEnabled(True)
+            self.ui.tabWidget.setCurrentIndex(6)
+        else:
+            self.ui.label_user.setStyleSheet("color: red; background-color: yellow")
+            self.ui.label_user.setText("Не выбраны пользователи для отображения сессий")
+
 
     def finished_sessions_by_users(self):
         pass
