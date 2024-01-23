@@ -167,16 +167,17 @@ class STableWidet(QWidget):
 
                 text = line_edit.text().lower()
                 value = self.table_widget.item(row, col).text()
-                if text:
-                    if type(value) is not str:
-                        print(type(value))
+
                 try:
                     text = text.replace(",", ".")
                     chars_before_dot = value.find('.')
                     if chars_before_dot == -1:
-                        chars_before_dot = 6
+                        num_of_chars = 0
+                    else:
+                        num_of_chars = 6 - chars_before_dot
+                        if num_of_chars < 0:
+                            num_of_chars = 0
                     value = float(value)
-                    num_of_chars = 6 - chars_before_dot
                     format_string = "{:." + str(num_of_chars) + "f}"
                     value = format_string.format(value)
                     value = str(float(value))
