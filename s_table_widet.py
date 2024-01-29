@@ -167,26 +167,39 @@ class STableWidet(QWidget):
 
                 text = line_edit.text().lower()
                 value = self.table_widget.item(row, col).text()
-
-                try:
-                    text = text.replace(",", ".")
-                    chars_before_dot = value.find('.')
-                    if chars_before_dot == -1:
-                        num_of_chars = 0
-                    else:
-                        num_of_chars = 6 - chars_before_dot
-                        if num_of_chars < 0:
+                if text:
+                    try:
+                        text = text.replace(",", ".")
+                        chars_before_dot = value.find('.')
+                        if chars_before_dot == -1:
                             num_of_chars = 0
-                    value = float(value)
-                    format_string = "{:." + str(num_of_chars) + "f}"
-                    value = format_string.format(value)
-                    value = str(float(value))
-                except:
-                    pass
+                        else:
+                            num_of_chars = 6 - chars_before_dot
+                            if num_of_chars < 0:
+                                num_of_chars = 0
+                        value = float(value)
+                        format_string = "{:." + str(num_of_chars) + "f}"
+                        value = format_string.format(value)
+                        value = str(float(value))
+                        sp = value[value.find('.'):]
+                        fp = value[:value.find('.')]
+                        new_sp = ''
+                        flag = False
+                        for el in sp[::-1]:
+                            if el == '0' and not flag:
+                                pass
+                            else:
+                                flag = True
+                                new_sp += el
+                        new_sp = new_sp[::-1]
+                        value = fp+new_sp
+                    except:
+                        pass
 
-                if text and text not in value.lower():
-                    hide_row = True
-                    break
+                    if text not in value.lower():
+                        hide_row = True
+                        break
+
             if hide_row is False:
                 length += 1
             self.table_widget.setRowHidden(row, hide_row)

@@ -1,17 +1,16 @@
 # test gui
 
-def test_func():
-    res = 0
-    for i in range(26):
-        # if i > 20:
-        #     return res
-        if i == 25:
-            yield res
-            break
-        if i % 5 == 0:
-            yield i
-        res += i
+a = '3.00010'
 
-
-if __name__ == '__main__':
-    result = test_func()
+sp = a[a.find('.'):]
+fp = a[:a.find('.')]
+new_sp = ''
+flag = False
+for el in sp[::-1]:
+    if el == '0' and not flag:
+        pass
+    else:
+        flag = True
+        new_sp += el
+new_sp = new_sp[::-1]
+print(fp+new_sp)
