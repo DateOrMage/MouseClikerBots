@@ -150,6 +150,7 @@ class MouseClicker(QMainWindow):
         self.ui.matplotlib_traj_widget.canvas.axes.set_xlabel('X Coordinate')
         self.ui.matplotlib_traj_widget.canvas.axes.set_ylabel('Y Coordinate')
         self.ui.matplotlib_traj_widget.canvas.axes.set_title(f'Bot Trajectory')
+        self.ui.matplotlib_traj_widget.canvas.axes.invert_yaxis()
         for value in selected_indices_track:
             x_coords, y_coords, label = get_x_y_cooor_and_label(self.data, self.ui.tableWidget_init.checkbox_list[0],
                                                                 value)
